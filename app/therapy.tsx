@@ -58,7 +58,7 @@ export default function TherapyScreen() {
                 <Text style={styles.sessionName}>Individual Serenity</Text>
                 <Text style={styles.sessionSub}>45 mins • 1:1 Consultation</Text>
               </View>
-              <Text style={styles.sessionPrice}>$49</Text>
+              <Text style={styles.sessionPrice}>₹49</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={[styles.sessionItem, styles.sessionActive]}>
@@ -66,7 +66,7 @@ export default function TherapyScreen() {
                 <Text style={styles.sessionName}>Full Office Refresh</Text>
                 <Text style={styles.sessionSub}>120 mins • Team Setup</Text>
               </View>
-              <Text style={styles.sessionPrice}>$199</Text>
+              <Text style={styles.sessionPrice}>₹199</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.mainBtn}>

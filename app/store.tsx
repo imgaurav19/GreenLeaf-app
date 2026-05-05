@@ -35,7 +35,7 @@ export default function StoreScreen() {
                     <Image source={require('@/assets/images/office_plant.png')} style={styles.carouselImg} resizeMode="contain" />
                     <Text style={styles.carouselTitle}>Desk Plant</Text>
                     <View style={styles.carouselPriceRow}>
-                      <Text style={styles.carouselPrice}>$147.00 <Text style={styles.carouselOld}>$195</Text></Text>
+                      <Text style={styles.carouselPrice}>₹147.00 <Text style={styles.carouselOld}>₹195</Text></Text>
                       <TouchableOpacity style={styles.smallCartBtn}>
                         <Ionicons name="cart-outline" size={18} color="#FFF" />
                       </TouchableOpacity>
@@ -71,7 +71,7 @@ export default function StoreScreen() {
 
               <View style={styles.deliveryRow}>
                 <Text style={styles.deliveryLabel}>Delivery fee</Text>
-                <Text style={styles.deliveryVal}>$4.00</Text>
+                <Text style={styles.deliveryVal}>₹4.00</Text>
               </View>
             </View>
           </View>
@@ -83,7 +83,7 @@ export default function StoreScreen() {
           <View style={styles.pricePill}>
             <View style={styles.priceInfo}>
               <Text style={styles.totalLabel}>Total Amount</Text>
-              <Text style={styles.totalVal}>$147.00</Text>
+              <Text style={styles.totalVal}>₹147.00</Text>
             </View>
             <TouchableOpacity style={styles.addToCartBtn}>
               <Text style={styles.btnText}>Add to Cart</Text>

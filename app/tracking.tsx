@@ -75,7 +75,7 @@ export default function TrackingScreen() {
           <Text style={styles.summaryTitle}>Order Summary</Text>
           <View style={styles.itemRow}>
             <Text style={styles.itemName}>1x Monstera Deliciosa</Text>
-            <Text style={styles.itemPrice}>$45.00</Text>
+            <Text style={styles.itemPrice}>₹45.00</Text>
           </View>
         </View>
       </View>

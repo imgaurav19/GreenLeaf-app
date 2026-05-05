@@ -32,14 +32,14 @@ export default function SubscriptionScreen() {
           <View style={styles.pricingRow}>
             <View style={styles.priceCard}>
               <Text style={styles.priceLabel}>Monthly</Text>
-              <Text style={styles.priceValue}>$9.99</Text>
+              <Text style={styles.priceValue}>₹9.99</Text>
             </View>
             <View style={[styles.priceCard, styles.activePrice]}>
               <View style={styles.popularBadge}>
                 <Text style={styles.popularText}>BEST VALUE</Text>
               </View>
               <Text style={styles.priceLabel}>Yearly</Text>
-              <Text style={styles.priceValue}>$79.99</Text>
+              <Text style={styles.priceValue}>₹79.99</Text>
             </View>
           </View>
 
