@@ -112,21 +112,21 @@ const styles = StyleSheet.create({
   },
   content: {
     flexGrow: 1,
-    paddingHorizontal: 30,
-    paddingTop: 20,
-    paddingBottom: 40,
+    paddingHorizontal: 25,
+    paddingTop: 10,
+    paddingBottom: 30,
   },
   brandHero: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 20,
   },
   logoCircle: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: 15,
     shadowColor: '#D8F36C',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   brandName: {
-    fontSize: 36,
+    fontSize: 32,
     fontWeight: '900',
     color: '#000',
     letterSpacing: -1,
@@ -146,19 +146,19 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '900',
     color: '#000',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#666',
-    lineHeight: 24,
-    marginBottom: 40,
+    lineHeight: 22,
+    marginBottom: 25,
   },
   inputSection: {
-    marginBottom: 30,
+    marginBottom: 20,
   },
   inputWrapper: {
     marginBottom: 20,
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#999',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   inputField: {
     flexDirection: 'row',
@@ -199,10 +199,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   loginBtn: {
-    height: 60,
-    borderRadius: 30,
+    height: 55,
+    borderRadius: 28,
     overflow: 'hidden',
-    marginTop: 20,
+    marginTop: 15,
   },
   btnGradient: {
     flex: 1,
@@ -215,12 +215,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   socialSection: {
-    marginTop: 50,
+    marginTop: 35,
   },
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 25,
   },
   divider: {
     flex: 1,
@@ -237,8 +237,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   socialBtn: {
-    height: 60,
-    borderRadius: 30,
+    height: 55,
+    borderRadius: 28,
     borderWidth: 1,
     borderColor: '#EEE',
     alignItems: 'center',
