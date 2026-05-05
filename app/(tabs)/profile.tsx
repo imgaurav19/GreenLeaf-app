@@ -87,7 +87,6 @@ export default function ProfileScreen() {
           </TouchableOpacity>
 
         </ScrollView>
-      </SafeAreaView>
     </View>
   );
 }
