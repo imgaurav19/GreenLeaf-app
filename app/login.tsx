@@ -3,59 +3,36 @@ import { StyleSheet, View, Text, TouchableOpacity, TextInput, Image, KeyboardAvo
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import auth from '@react-native-firebase/auth';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 export default function LoginScreen() {
   const router = useRouter();
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
-  const [confirm, setConfirm] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    GoogleSignin.configure({
-      webClientId: '36286520721-XXXXXXXX.apps.googleusercontent.com', // Replace with your Web Client ID from Firebase
-    });
-  }, []);
 
   const handleLogin = async () => {
     if (loading) return;
     setLoading(true);
 
-    try {
+    // MOCK LOGIN FOR HACKATHON
+    setTimeout(() => {
       if (step === 'phone') {
-        const fullPhone = `+91${phone}`;
-        const confirmation = await auth().signInWithPhoneNumber(fullPhone);
-        setConfirm(confirmation);
         setStep('otp');
       } else {
-        await confirm.confirm(otp);
         router.replace('/(tabs)');
       }
-    } catch (error: any) {
-      console.log(error);
-      Alert.alert('Authentication Error', error.message);
-    } finally {
       setLoading(false);
-    }
+    }, 1000);
   };
 
   const handleGoogleLogin = async () => {
-    try {
-      setLoading(true);
-      await GoogleSignin.hasPlayServices();
-      const { idToken } = await GoogleSignin.signIn();
-      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-      await auth().signInWithCredential(googleCredential);
+    setLoading(true);
+    // MOCK GOOGLE LOGIN
+    setTimeout(() => {
       router.replace('/(tabs)');
-    } catch (error: any) {
-      console.log(error);
-      Alert.alert('Google Login Error', error.message);
-    } finally {
       setLoading(false);
-    }
+    }, 1000);
   };
 
   return (
