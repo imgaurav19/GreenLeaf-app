@@ -53,57 +53,70 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
-      <View style={{ height: insets.top, backgroundColor: '#000' }} />
-      <LinearGradient colors={['#F0F4EF', '#FFFFFF']} style={StyleSheet.absoluteFill} />
+      <View style={{ height: insets.top, backgroundColor: '#1A2A1A' }} />
       
       <View style={{ flex: 1 }}>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 150 }}>
-
           
-          {/* Zomato-style Search Header */}
-          <View style={styles.searchHeader}>
-            <View style={styles.locationRow}>
-              <Ionicons name="location" size={24} color="#00C881" />
-              <View style={{ marginLeft: 8 }}>
-                <Text style={styles.locationTitle}>{location}</Text>
-                <Text style={styles.locationSub} numberOfLines={1}>{area}</Text>
+          {/* Top Wallpaper Hero */}
+          <View style={styles.heroWall}>
+            <Image 
+              source={require('@/assets/images/fiddle_leaf_fig.png')} 
+              style={styles.wallImg} 
+              blurRadius={2}
+            />
+            <LinearGradient colors={['rgba(26,42,26,0.8)', 'transparent']} style={StyleSheet.absoluteFill} />
+            
+            <View style={styles.searchHeaderWall}>
+              <View style={styles.locationRow}>
+                <Ionicons name="location" size={24} color="#D8F36C" />
+                <View style={{ marginLeft: 8 }}>
+                  <Text style={[styles.locationTitle, { color: '#FFF' }]}>{location}</Text>
+                  <Text style={[styles.locationSub, { color: '#CCC' }]} numberOfLines={1}>{area}</Text>
+                </View>
+                <TouchableOpacity style={styles.avatarBtn}>
+                  <Image source={require('@/assets/images/partial-react-logo.png')} style={styles.avatarSmall} />
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity style={styles.avatarBtn}>
-                <Image source={require('@/assets/images/partial-react-logo.png')} style={styles.avatarSmall} />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.searchBar}>
-              <Ionicons name="search" size={20} color="#666" />
-              <TextInput style={styles.searchInput} placeholder="Search for plants, pots, or seeds..." />
-              <View style={styles.vDivider} />
-              <Ionicons name="mic-outline" size={20} color="#00C881" />
+              <View style={styles.searchBar}>
+                <Ionicons name="search" size={20} color="#666" />
+                <TextInput style={styles.searchInput} placeholder="Search for plants, pots, or seeds..." />
+                <View style={styles.vDivider} />
+                <Ionicons name="mic-outline" size={20} color="#00C881" />
+              </View>
             </View>
           </View>
 
-          {/* Offer Banner */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.bannerRow}>
-            <TouchableOpacity style={styles.offerBanner}>
-              <LinearGradient colors={['#00C881', '#009D65']} style={styles.bannerGradient}>
-                <View>
-                  <Text style={styles.bannerOffer}>60% OFF</Text>
-                  <Text style={styles.bannerText}>On All Indoor Plants</Text>
-                  <Text style={styles.bannerCode}>Code: GREEN60</Text>
-                </View>
-                <Image source={require('@/assets/images/office_plant.png')} style={styles.bannerImg} />
-              </LinearGradient>
-            </TouchableOpacity>
+          {/* Offer Carousel */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} pagingEnabled snapToAlignment="center" contentContainerStyle={styles.bannerRow}>
+            {[
+              { id: '1', offer: '60% OFF', text: 'On All Indoor Plants', code: 'GREEN60', colors: ['#00C881', '#009D65'] },
+              { id: '2', offer: 'BOGO', text: 'Buy 1 Get 1 on Pots', code: 'POTLOVE', colors: ['#FF6F00', '#FF8F00'] },
+              { id: '3', offer: 'FREEBIE', text: 'Free Seeds over ₹499', code: 'FREESEED', colors: ['#673AB7', '#512DA8'] },
+            ].map(offer => (
+              <TouchableOpacity key={offer.id} style={styles.offerBanner}>
+                <LinearGradient colors={offer.colors as any} style={styles.bannerGradient}>
+                  <View>
+                    <Text style={styles.bannerOffer}>{offer.offer}</Text>
+                    <Text style={styles.bannerText}>{offer.text}</Text>
+                    <Text style={styles.bannerCode}>Code: {offer.code}</Text>
+                  </View>
+                  <Image source={require('@/assets/images/office_plant.png')} style={styles.bannerImg} />
+                </LinearGradient>
+              </TouchableOpacity>
+            ))}
           </ScrollView>
 
           {/* World Categories Section */}
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>World Collections</Text>
+            <Text style={styles.sectionTitle}>Shop by Vibe</Text>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryRow}>
             {[
               { id: '1', name: 'Outdoor', icon: 'sunny', color: '#FFF9C4' },
-              { id: '2', name: 'Sea Plants', icon: 'water', color: '#E1F5FE' },
-              { id: '3', name: 'Antarctica', icon: 'snow', color: '#F3E5F5' },
-              { id: '4', name: 'Mountain', icon: 'triangle-outline', color: '#E8F5E9' },
+              { id: '2', name: 'Water Plants', icon: 'water', color: '#E1F5FE' },
+              { id: '4', name: 'Air Purifying', icon: 'leaf', color: '#E8F5E9' },
+              { id: '5', name: 'Rare Finds', icon: 'diamond', color: '#F3E5F5' },
             ].map(cat => (
               <TouchableOpacity key={cat.id} style={[styles.catCard, { backgroundColor: cat.color }]}>
                 <Ionicons name={cat.icon as any} size={24} color="#000" />
@@ -195,10 +208,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFF',
   },
-  searchHeader: {
+  heroWall: {
+    width: '100%',
+    height: 220,
+    backgroundColor: '#1A2A1A',
+    overflow: 'hidden',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  wallImg: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
+    opacity: 0.6,
+  },
+  searchHeaderWall: {
     paddingHorizontal: 20,
     paddingTop: 10,
-    paddingBottom: 20,
+    zIndex: 10,
   },
   locationRow: {
     flexDirection: 'row',

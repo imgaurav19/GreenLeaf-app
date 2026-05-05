@@ -10,68 +10,68 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarShowLabel: false,
+        tabBarShowLabel: true,
+        tabBarActiveTintColor: '#D8F36C',
+        tabBarInactiveTintColor: 'rgba(255,255,255,0.4)',
         tabBarStyle: {
           position: 'absolute',
-          bottom: 25,
-          left: 20,
-          right: 20,
-          height: 70,
-          backgroundColor: 'transparent',
+          bottom: 20,
+          left: 25,
+          right: 25,
+          height: 75,
+          backgroundColor: '#1A2A1A',
           borderTopWidth: 0,
-          elevation: 0,
-          shadowOpacity: 0,
+          borderRadius: 35,
+          paddingBottom: 12,
+          paddingTop: 10,
+          elevation: 10,
+          shadowColor: '#000',
+          shadowOpacity: 0.3,
+          shadowRadius: 15,
         },
-        tabBarBackground: () => (
-          <View style={styles.navBg}>
-            <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
-            <LinearGradient 
-              colors={['rgba(20, 35, 20, 0.85)', 'rgba(10, 18, 10, 0.95)']} 
-              style={StyleSheet.absoluteFill} 
-            />
-          </View>
-        ),
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontWeight: '900',
+          marginTop: -2,
+        }
       }}>
       
       <Tabs.Screen
         name="index"
         options={{
+          title: 'HOME',
           tabBarIcon: ({ focused }) => (
-            <View style={styles.tabItem}>
-              <Ionicons 
-                name={focused ? "home" : "home-outline"} 
-                size={26} 
-                color={focused ? "#D8F36C" : "rgba(255,255,255,0.45)"} 
-              />
-              {focused && <View style={styles.dot} />}
-            </View>
+            <Ionicons 
+              name={focused ? "home" : "home-outline"} 
+              size={26} 
+              color={focused ? "#D8F36C" : "rgba(255,255,255,0.45)"} 
+            />
           ),
         }}
       />
 
       <Tabs.Screen
-        name="ar_vr"
+        name="explore"
         options={{
+          title: 'EXPLORE',
           tabBarIcon: ({ focused }) => (
-            <View style={styles.tabItem}>
-              <Ionicons 
-                name={focused ? "cube" : "cube-outline"} 
-                size={26} 
-                color={focused ? "#D8F36C" : "rgba(255,255,255,0.45)"} 
-              />
-              {focused && <View style={styles.dot} />}
-            </View>
+            <Ionicons 
+              name={focused ? "search" : "search-outline"} 
+              size={26} 
+              color={focused ? "#D8F36C" : "rgba(255,255,255,0.45)"} 
+            />
           ),
         }}
       />
       
       <Tabs.Screen
-        name="orders"
+        name="scan_placeholder"
         options={{
+          title: '',
           tabBarIcon: () => (
             <View style={styles.scanWrap}>
               <LinearGradient colors={['#D8F36C', '#A8E040']} style={styles.scanCircle}>
-                <Ionicons name="scan" size={32} color="#1A2A1A" />
+                <Ionicons name="scan" size={30} color="#1A2A1A" />
               </LinearGradient>
             </View>
           ),
@@ -88,21 +88,21 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
+          title: 'USER',
           tabBarIcon: ({ focused }) => (
-            <View style={styles.tabItem}>
-              <Ionicons 
-                name={focused ? "person" : "person-outline"} 
-                size={26} 
-                color={focused ? "#D8F36C" : "rgba(255,255,255,0.45)"} 
-              />
-              {focused && <View style={styles.dot} />}
-            </View>
+            <Ionicons 
+              name={focused ? "person" : "person-outline"} 
+              size={26} 
+              color={focused ? "#D8F36C" : "rgba(255,255,255,0.45)"} 
+            />
           ),
         }}
       />
 
       {/* Hidden tabs */}
       <Tabs.Screen name="search" options={{ href: null }} />
+      <Tabs.Screen name="orders" options={{ href: null }} />
+      <Tabs.Screen name="ar_vr" options={{ href: null }} />
     </Tabs>
   );
 }
@@ -130,12 +130,12 @@ const styles = StyleSheet.create({
   scanWrap: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: -25,
+    marginTop: -20,
   },
   scanCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#D8F36C',

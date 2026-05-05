@@ -12,6 +12,7 @@ const { width, height } = Dimensions.get('window');
 export default function ScanScreen() {
   const router = useRouter();
   const [isScanning, setIsScanning] = useState(false);
+  const [isARMode, setIsARMode] = useState(false);
   const [mlStatus, setMlStatus] = useState<'idle' | 'loading' | 'success'>('idle');
   const [showResult, setShowResult] = useState(false);
   const scanLineAnim = useRef(new Animated.Value(0)).current;
@@ -23,13 +24,11 @@ export default function ScanScreen() {
           Animated.timing(scanLineAnim, {
             toValue: 1,
             duration: 2000,
-            easing: Easing.inOut(Easing.ease),
             useNativeDriver: true,
           }),
           Animated.timing(scanLineAnim, {
             toValue: 0,
             duration: 2000,
-            easing: Easing.inOut(Easing.ease),
             useNativeDriver: true,
           }),
         ])
@@ -42,7 +41,6 @@ export default function ScanScreen() {
     setIsScanning(true);
     setMlStatus('loading');
     
-    // Simulate ML Processing
     setTimeout(() => {
       setMlStatus('success');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -67,16 +65,36 @@ export default function ScanScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.iconBtn}>
             <Ionicons name="chevron-back" size={24} color="#000" />
           </TouchableOpacity>
-          <View style={styles.mlBadge}>
-            <MaterialCommunityIcons name="robot-outline" size={16} color="#FF6F00" />
-            <Text style={styles.mlText}>TF-Lite Active</Text>
-          </View>
+          <TouchableOpacity 
+            style={[styles.arToggle, isARMode && styles.arActive]} 
+            onPress={() => setIsARMode(!isARMode)}
+          >
+            <MaterialCommunityIcons name={isARMode ? "cube-scan" : "cube-outline"} size={20} color={isARMode ? "#FFF" : "#FF6F00"} />
+            <Text style={[styles.arText, isARMode && { color: '#FFF' }]}>{isARMode ? 'AR ON' : 'AR OFF'}</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.iconBtn}>
             <Ionicons name="flash-outline" size={24} color="#000" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.viewfinderContainer}>
+          {isARMode && (
+            <View style={styles.arOverlay}>
+              <View style={[styles.arMarker, { top: '30%', left: '20%' }]}>
+                <BlurView intensity={90} tint="dark" style={styles.arPill}>
+                  <Text style={styles.arLabel}>🏥 Health</Text>
+                  <Text style={styles.arValue}>98.4%</Text>
+                </BlurView>
+              </View>
+              <View style={[styles.arMarker, { top: '50%', right: '15%' }]}>
+                <BlurView intensity={90} tint="dark" style={styles.arPill}>
+                  <Text style={styles.arLabel}>🧬 Life Span</Text>
+                  <Text style={styles.arValue}>15-20Y</Text>
+                </BlurView>
+              </View>
+            </View>
+          )}
+
           <View style={styles.viewfinder}>
             <View style={[styles.bracket, styles.topLeft]} />
             <View style={[styles.bracket, styles.topRight]} />
@@ -86,10 +104,6 @@ export default function ScanScreen() {
             {isScanning && (
               <Animated.View style={[styles.scanLineContainer, { transform: [{ translateY }] }]}>
                 <View style={styles.scanLine} />
-                <LinearGradient 
-                  colors={['rgba(216, 243, 108, 0.4)', 'transparent']} 
-                  style={styles.scanGlow} 
-                />
               </Animated.View>
             )}
           </View>
@@ -188,19 +202,53 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 25,
   },
-  mlBadge: {
+  arToggle: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    backgroundColor: 'rgba(255,255,255,0.8)',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
     borderRadius: 20,
-    gap: 6,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#FF6F00',
   },
-  mlText: {
+  arActive: {
+    backgroundColor: '#FF6F00',
+  },
+  arText: {
     fontSize: 12,
     fontWeight: 'bold',
     color: '#FF6F00',
+  },
+  arOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 5,
+  },
+  arMarker: {
+    position: 'absolute',
+  },
+  arPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 15,
+    overflow: 'hidden',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  arLabel: {
+    color: '#FFF',
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  arValue: {
+    color: '#D8F36C',
+    fontSize: 12,
+    fontWeight: '900',
   },
   iconBtn: {
     width: 44,
