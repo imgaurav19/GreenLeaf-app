@@ -1,30 +1,53 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+import auth from '@react-native-firebase/auth';
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  const [initializing, setInitializing] = useState(true);
+  const [user, setUser] = useState<any>();
+  const router = useRouter();
+  const segments = useSegments();
+
+  function onAuthStateChanged(user: any) {
+    setUser(user);
+    if (initializing) setInitializing(false);
+  }
+
+  useEffect(() => {
+    const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
+    return subscriber; // unsubscribe on unmount
+  }, []);
+
+  useEffect(() => {
+    if (initializing) return;
+
+    const inAuthGroup = segments[0] === '(tabs)';
+
+    if (!user && inAuthGroup) {
+      // Redirect to login if user is not logged in and trying to access tabs
+      router.replace('/login');
+    } else if (user && segments[0] !== '(tabs)') {
+      // Redirect to home if user is logged in and trying to access landing/login
+      router.replace('/(tabs)');
+    }
+  }, [user, initializing, segments]);
+
+  if (initializing) return null;
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
         <Stack.Screen name="scan" options={{ presentation: 'fullScreenModal', headerShown: false }} />
         <Stack.Screen name="subscription" options={{ presentation: 'fullScreenModal', headerShown: false }} />
         <Stack.Screen name="details" options={{ presentation: 'modal', headerShown: false }} />
         <Stack.Screen name="therapy" options={{ presentation: 'fullScreenModal', headerShown: false }} />
       </Stack>
       <StatusBar style="auto" />
-    </ThemeProvider>
+    </>
   );
 }

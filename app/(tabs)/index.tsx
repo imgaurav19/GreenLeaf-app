@@ -6,29 +6,51 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 
+import * as Location from 'expo-location';
+
 const { width } = Dimensions.get('window');
 
 const FAST_PLANTS = [
-  { id: '1', name: 'Tulsi (Holy Basil)', price: '₹49', time: '10 min', rating: '4.9', img: require('@/assets/images/succulent_plant.png') },
-  { id: '2', name: 'Money Plant', price: '₹149', time: '15 min', rating: '4.8', img: require('@/assets/images/office_plant.png') },
-  { id: '3', name: 'Aloe Vera (Indian)', price: '₹99', time: '10 min', rating: '4.9', img: require('@/assets/images/succulent_plant.png') },
-  { id: '4', name: 'Ashwagandha', price: '₹199', time: '20 min', rating: '4.7', img: require('@/assets/images/fiddle_leaf_fig.png') },
-  { id: '5', name: 'Peace Lily', price: '₹299', time: '18 min', rating: '4.6', img: require('@/assets/images/office_plant.png') },
-  { id: '6', name: 'Snake Plant', price: '₹349', time: '12 min', rating: '4.8', img: require('@/assets/images/succulent_plant.png') },
-  { id: '7', name: 'Curry Leaf', price: '₹79', time: '10 min', rating: '4.4', img: require('@/assets/images/office_plant.png') },
-  { id: '8', name: 'Jasmine (Mogra)', price: '₹129', time: '22 min', rating: '4.7', img: require('@/assets/images/fiddle_leaf_fig.png') },
-  { id: '9', name: 'Coral Moss (Sea)', price: '₹399', time: '40 min', rating: '4.9', img: require('@/assets/images/succulent_plant.png') },
-  { id: '10', name: 'Alpine Edelweiss', price: '₹599', time: '45 min', rating: '5.0', img: require('@/assets/images/office_plant.png') },
-  { id: '11', name: 'Snow Orchid (Antarctica)', price: '₹899', time: '60 min', rating: '4.9', img: require('@/assets/images/fiddle_leaf_fig.png') },
-  { id: '12', name: 'Wild Lavender (Mountain)', price: '₹249', time: '25 min', rating: '4.6', img: require('@/assets/images/succulent_plant.png') },
+  { id: '1', name: 'Tulsi (Holy Basil)', price: '₹49', time: '12 MINS', rating: '4.9', img: require('@/assets/images/succulent_plant.png') },
+  { id: '2', name: 'Money Plant', price: '₹149', time: '15 MINS', rating: '4.8', img: require('@/assets/images/office_plant.png') },
+  { id: '3', name: 'Aloe Vera (Indian)', price: '₹99', time: '10 MINS', rating: '4.9', img: require('@/assets/images/succulent_plant.png') },
+  { id: '4', name: 'Ashwagandha', price: '₹199', time: '18 MINS', rating: '4.7', img: require('@/assets/images/fiddle_leaf_fig.png') },
+  { id: '5', name: 'Peace Lily', price: '₹299', time: '20 MINS', rating: '4.6', img: require('@/assets/images/office_plant.png') },
+  { id: '6', name: 'Snake Plant', price: '₹349', time: '12 MINS', rating: '4.8', img: require('@/assets/images/succulent_plant.png') },
+  { id: '7', name: 'Curry Leaf', price: '₹79', time: '10 MINS', rating: '4.4', img: require('@/assets/images/office_plant.png') },
+  { id: '8', name: 'Jasmine (Mogra)', price: '₹129', time: '25 MINS', rating: '4.7', img: require('@/assets/images/fiddle_leaf_fig.png') },
 ];
 
 export default function HomeScreen() {
   const [addedItems, setAddedItems] = React.useState<string[]>([]);
+  const [location, setLocation] = React.useState('Fetching location...');
+  const [area, setArea] = React.useState('Finding area...');
   const insets = useSafeAreaInsets();
 
+  React.useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setLocation('Bangalore');
+        setArea('MG Road, Central');
+        return;
+      }
+
+      let loc = await Location.getCurrentPositionAsync({});
+      let address = await Location.reverseGeocodeAsync({
+        latitude: loc.coords.latitude,
+        longitude: loc.coords.longitude
+      });
+      
+      if (address.length > 0) {
+        setArea(`${address[0].name}, ${address[0].street}`);
+        setLocation(address[0].city || 'Bangalore');
+      }
+    })();
+  }, []);
+
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+    <View style={[styles.container, { paddingTop: insets.top + 10, paddingBottom: insets.bottom }]}>
       <LinearGradient colors={['#F0F4EF', '#FFFFFF']} style={StyleSheet.absoluteFill} />
       
       <View style={{ flex: 1 }}>
@@ -39,9 +61,9 @@ export default function HomeScreen() {
           <View style={styles.searchHeader}>
             <View style={styles.locationRow}>
               <Ionicons name="location" size={24} color="#00C881" />
-              <View>
-                <Text style={styles.locationTitle}>Home</Text>
-                <Text style={styles.locationSub}>Your current location...</Text>
+              <View style={{ marginLeft: 8 }}>
+                <Text style={styles.locationTitle}>{location}</Text>
+                <Text style={styles.locationSub} numberOfLines={1}>{area}</Text>
               </View>
               <TouchableOpacity style={styles.avatarBtn}>
                 <Image source={require('@/assets/images/partial-react-logo.png')} style={styles.avatarSmall} />
@@ -119,25 +141,25 @@ export default function HomeScreen() {
               >
                 <View style={styles.imgBox}>
                   <Image source={plant.img} style={styles.pImg} resizeMode="contain" />
+                  <View style={styles.etaBadge}>
+                    <Ionicons name="timer-outline" size={10} color="#000" />
+                    <Text style={styles.etaText}>{plant.time}</Text>
+                  </View>
                   <View style={styles.ratingBadge}>
                     <Text style={styles.ratingText}>{plant.rating} <Ionicons name="star" size={10} color="#FFF" /></Text>
                   </View>
                 </View>
                 <View style={styles.pInfo}>
-                  <Text style={styles.pName}>{plant.name}</Text>
-                  <Text style={styles.pTime}>{plant.time}</Text>
-                  <View style={styles.pPriceRow}>
-                    <Text style={styles.pPrice}>{plant.price}</Text>
-                    <TouchableOpacity 
-                      style={[styles.addBtn, addedItems.includes(plant.id) && styles.addedBtn]}
-                      onPress={() => setAddedItems(prev => addedItems.includes(plant.id) ? prev.filter(i => i !== plant.id) : [...prev, plant.id])}
-                    >
-                      <Text style={[styles.addText, addedItems.includes(plant.id) && styles.addedText]}>
-                        {addedItems.includes(plant.id) ? 'ADDED' : 'ADD'}
-                      </Text>
-                      {!addedItems.includes(plant.id) && <Ionicons name="add" size={16} color="#00C881" />}
-                    </TouchableOpacity>
-                  </View>
+                  <Text style={styles.pName} numberOfLines={1}>{plant.name}</Text>
+                  <Text style={styles.pPrice}>{plant.price}</Text>
+                  <TouchableOpacity 
+                    style={[styles.addBtn, addedItems.includes(plant.id) && styles.addedBtn]}
+                    onPress={() => setAddedItems(prev => addedItems.includes(plant.id) ? prev.filter(i => i !== plant.id) : [...prev, plant.id])}
+                  >
+                    <Text style={[styles.addText, addedItems.includes(plant.id) && styles.addedText]}>
+                      {addedItems.includes(plant.id) ? 'ADDED' : 'ADD'}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               </TouchableOpacity>
             ))}
@@ -354,6 +376,26 @@ const styles = StyleSheet.create({
   pImg: {
     width: '80%',
     height: '80%',
+  },
+  etaBadge: {
+    position: 'absolute',
+    bottom: 10,
+    left: 10,
+    backgroundColor: '#FFF',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    elevation: 2,
+  },
+  etaText: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#000',
   },
   ratingBadge: {
     position: 'absolute',
