@@ -23,21 +23,18 @@ export default function ProfileScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: bgColor }]}>
-      <SafeAreaView style={{ flex: 1 }}>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
-          
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.iconBtn}>
-              <Ionicons name="chevron-back" size={24} color={textColor} />
-            </TouchableOpacity>
-            <Text style={[styles.headerTitle, { color: textColor }]}>Profile</Text>
-            <TouchableOpacity style={styles.logoutTopBtn} onPress={handleLogout}>
-              <Ionicons name="log-out-outline" size={24} color="#FF3B30" />
-            </TouchableOpacity>
-          </View>
+      <View style={{ height: 40, backgroundColor: '#1A2A1A' }} />
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+        
+        {/* Explore-style Header for Profile */}
+        <View style={styles.headerExplore}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.iconBtn}>
+            <Ionicons name="chevron-back" size={24} color="#FFF" />
+          </TouchableOpacity>
+          <Text style={styles.headerExploreTitle}>Your Profile</Text>
+        </View>
 
-          {/* Profile Section */}
+        {/* Profile Section */}
           <View style={styles.profileSection}>
             <View style={styles.avatarContainer}>
               <Image source={require('@/assets/images/partial-react-logo.png')} style={styles.avatar} />
@@ -116,17 +113,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 25,
-    paddingTop: 10,
-    marginBottom: 30,
+  headerExplore: {
+    padding: 25,
+    backgroundColor: '#1A2A1A',
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+    marginBottom: 40,
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+  headerExploreTitle: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#FFF',
+    marginTop: 15,
   },
   iconBtn: {
     width: 44,

@@ -58,32 +58,22 @@ export default function HomeScreen() {
       <View style={{ flex: 1 }}>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 150 }}>
           
-          {/* Top Wallpaper Hero */}
-          <View style={styles.heroWall}>
-            <Image 
-              source={require('@/assets/images/fiddle_leaf_fig.png')} 
-              style={styles.wallImg} 
-              blurRadius={2}
-            />
-            <LinearGradient colors={['rgba(26,42,26,0.8)', 'transparent']} style={StyleSheet.absoluteFill} />
-            
-            <View style={styles.searchHeaderWall}>
-              <View style={styles.locationRow}>
-                <Ionicons name="location" size={24} color="#D8F36C" />
-                <View style={{ marginLeft: 8 }}>
-                  <Text style={[styles.locationTitle, { color: '#FFF' }]}>{location}</Text>
-                  <Text style={[styles.locationSub, { color: '#CCC' }]} numberOfLines={1}>{area}</Text>
-                </View>
-                <TouchableOpacity style={styles.avatarBtn}>
-                  <Image source={require('@/assets/images/partial-react-logo.png')} style={styles.avatarSmall} />
-                </TouchableOpacity>
+          {/* Explore-style Header for Home */}
+          <View style={styles.headerExplore}>
+            <View style={styles.locationRow}>
+              <Ionicons name="location" size={24} color="#D8F36C" />
+              <View style={{ marginLeft: 8 }}>
+                <Text style={styles.locationTitleWall}>{location}</Text>
+                <Text style={styles.locationSubWall} numberOfLines={1}>{area}</Text>
               </View>
-              <View style={styles.searchBar}>
-                <Ionicons name="search" size={20} color="#666" />
-                <TextInput style={styles.searchInput} placeholder="Search for plants, pots, or seeds..." />
-                <View style={styles.vDivider} />
-                <Ionicons name="mic-outline" size={20} color="#00C881" />
-              </View>
+              <TouchableOpacity style={styles.avatarBtn}>
+                <Image source={require('@/assets/images/partial-react-logo.png')} style={styles.avatarSmall} />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.headerExploreTitle}>Green Leaf</Text>
+            <View style={styles.searchBarExplore}>
+              <Ionicons name="search" size={20} color="#666" />
+              <TextInput style={styles.searchInput} placeholder="Search for plants, pots, or seeds..." />
             </View>
           </View>
 
@@ -208,24 +198,35 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFF',
   },
-  heroWall: {
-    width: '100%',
-    height: 220,
+  headerExplore: {
+    padding: 25,
     backgroundColor: '#1A2A1A',
-    overflow: 'hidden',
-    justifyContent: 'center',
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
     marginBottom: 20,
   },
-  wallImg: {
-    ...StyleSheet.absoluteFillObject,
-    width: '100%',
-    height: '100%',
-    opacity: 0.6,
+  headerExploreTitle: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#FFF',
+    marginVertical: 15,
   },
-  searchHeaderWall: {
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    zIndex: 10,
+  locationTitleWall: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#FFF',
+  },
+  locationSubWall: {
+    fontSize: 12,
+    color: '#CCC',
+  },
+  searchBarExplore: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    height: 55,
   },
   locationRow: {
     flexDirection: 'row',

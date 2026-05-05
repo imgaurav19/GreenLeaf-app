@@ -61,21 +61,21 @@ export default function ScanScreen() {
       <Image source={require('@/assets/images/fiddle_leaf_fig.png')} style={styles.cameraPreview} />
       
       <View style={styles.overlay}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.iconBtn}>
-            <Ionicons name="chevron-back" size={24} color="#000" />
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.arToggle, isARMode && styles.arActive]} 
-            onPress={() => setIsARMode(!isARMode)}
-          >
-            <MaterialCommunityIcons name={isARMode ? "cube-scan" : "cube-outline"} size={20} color={isARMode ? "#FFF" : "#FF6F00"} />
-            <Text style={[styles.arText, isARMode && { color: '#FFF' }]}>{isARMode ? 'AR ON' : 'AR OFF'}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconBtn}>
-            <Ionicons name="flash-outline" size={24} color="#000" />
-          </TouchableOpacity>
-        </View>
+      <View style={styles.headerDark}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.iconBtnWhite}>
+          <Ionicons name="chevron-back" size={24} color="#FFF" />
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.arToggle, isARMode && styles.arActive]} 
+          onPress={() => setIsARMode(!isARMode)}
+        >
+          <MaterialCommunityIcons name={isARMode ? "cube-scan" : "cube-outline"} size={20} color={isARMode ? "#FFF" : "#FF6F00"} />
+          <Text style={[styles.arText, isARMode && { color: '#FFF' }]}>{isARMode ? 'AR ON' : 'AR OFF'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.iconBtnWhite}>
+          <Ionicons name="flash-outline" size={24} color="#FFF" />
+        </TouchableOpacity>
+      </View>
 
         <View style={styles.viewfinderContainer}>
           {isARMode && (
@@ -194,13 +194,17 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    paddingTop: 60,
   },
-  header: {
+  headerDark: {
+    height: 120,
+    backgroundColor: '#1A2A1A',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 25,
+    paddingTop: 40,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
   arToggle: {
     flexDirection: 'row',
@@ -250,11 +254,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '900',
   },
-  iconBtn: {
+  iconBtnWhite: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.6)',
+    backgroundColor: 'rgba(255,255,255,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
   },
