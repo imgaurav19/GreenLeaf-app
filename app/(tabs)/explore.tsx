@@ -4,6 +4,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import * as Haptics from 'expo-haptics';
+import { useCart } from '../context/CartContext';
 
 const { width } = Dimensions.get('window');
 
@@ -27,6 +29,7 @@ const ALL_PLANTS = [
 
 export default function ExploreScreen() {
   const insets = useSafeAreaInsets();
+  const { addItem } = useCart();
 
   return (
     <View style={styles.container}>
@@ -69,10 +72,15 @@ export default function ExploreScreen() {
                   <Text style={styles.pName}>{plant.name}</Text>
                   <View style={styles.pRow}>
                     <Text style={styles.pPrice}>{plant.price}</Text>
-                    <View style={styles.pRating}>
-                      <Ionicons name="star" size={12} color="#FFB800" />
-                      <Text style={styles.pRatingText}>{plant.rating}</Text>
-                    </View>
+                    <TouchableOpacity 
+                      style={styles.exploreAddBtn}
+                      onPress={() => {
+                        addItem();
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      }}
+                    >
+                      <Text style={styles.exploreAddText}>ADD</Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
               </TouchableOpacity>
@@ -198,14 +206,15 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#00C881',
   },
-  pRating: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+  exploreAddBtn: {
+    backgroundColor: '#00C881',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
-  pRatingText: {
-    fontSize: 12,
+  exploreAddText: {
+    color: '#FFF',
+    fontSize: 10,
     fontWeight: 'bold',
-    color: '#666',
   },
 });

@@ -6,8 +6,9 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as Haptics from 'expo-haptics';
 
-import * as Location from 'expo-location';
+import { useCart } from '../context/CartContext';
 
 const { width } = Dimensions.get('window');
 
@@ -23,7 +24,7 @@ const FAST_PLANTS = [
 ];
 
 export default function HomeScreen() {
-  const [addedItems, setAddedItems] = React.useState<string[]>([]);
+  const { addItem, itemCount } = useCart();
   const [location, setLocation] = React.useState('Fetching location...');
   const [area, setArea] = React.useState('Finding area...');
   const insets = useSafeAreaInsets();
@@ -159,12 +160,13 @@ export default function HomeScreen() {
                   <Text style={styles.pName} numberOfLines={1}>{plant.name}</Text>
                   <Text style={styles.pPrice}>{plant.price}</Text>
                   <TouchableOpacity 
-                    style={[styles.addBtn, addedItems.includes(plant.id) && styles.addedBtn]}
-                    onPress={() => setAddedItems(prev => addedItems.includes(plant.id) ? prev.filter(i => i !== plant.id) : [...prev, plant.id])}
+                    style={styles.addBtn}
+                    onPress={() => {
+                      addItem();
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    }}
                   >
-                    <Text style={[styles.addText, addedItems.includes(plant.id) && styles.addedText]}>
-                      {addedItems.includes(plant.id) ? 'ADDED' : 'ADD'}
-                    </Text>
+                    <Text style={styles.addText}>ADD</Text>
                   </TouchableOpacity>
                 </View>
               </TouchableOpacity>
@@ -172,22 +174,6 @@ export default function HomeScreen() {
           </View>
 
         </ScrollView>
-
-        {/* Blinkit-style Floating Bag */}
-        {addedItems.length > 0 && (
-          <TouchableOpacity 
-            style={styles.floatingBag} 
-            onPress={() => router.push('/tracking')}
-            activeOpacity={0.9}
-          >
-            <LinearGradient colors={['#00C881', '#009D65']} style={styles.bagGradient}>
-              <Ionicons name="bag-handle" size={24} color="#FFF" />
-              <View style={styles.bagBadge}>
-                <Text style={styles.bagBadgeText}>{addedItems.length}</Text>
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
-        )}
       </View>
     </View>
   );

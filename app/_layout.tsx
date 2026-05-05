@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
+import { CartProvider } from './context/CartContext';
 
 export default function RootLayout() {
   const [initializing, setInitializing] = useState(false);
@@ -25,7 +26,7 @@ export default function RootLayout() {
   if (initializing) return null;
 
   return (
-    <>
+    <CartProvider>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ headerShown: false }} />
@@ -36,6 +37,6 @@ export default function RootLayout() {
         <Stack.Screen name="therapy" options={{ presentation: 'fullScreenModal', headerShown: false }} />
       </Stack>
       <StatusBar style="auto" />
-    </>
+    </CartProvider>
   );
 }
