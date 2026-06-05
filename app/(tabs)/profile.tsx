@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Image, SafeAreaView, Switch, TextInput, Alert } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Image, Switch, TextInput, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -8,8 +7,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [userName, setUserName] = useState('Jacob Oran');
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [pushNotifs, setPushNotifs] = useState(true);
+  const [userName, setUserName] = useState('Scarlett');
   const [isEditing, setIsEditing] = useState(false);
 
   const handleLogout = () => {
@@ -19,74 +19,145 @@ export default function ProfileScreen() {
     ]);
   };
 
-  const bgColor = isDarkMode ? '#1A1A1A' : '#FFF';
+  const bgColor = isDarkMode ? '#0D140D' : '#FFF';
   const textColor = isDarkMode ? '#FFF' : '#000';
   const subTextColor = isDarkMode ? '#AAA' : '#666';
+  const cardBg = isDarkMode ? 'rgba(255,255,255,0.08)' : '#F9F9F9';
+  const borderColor = isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)';
 
   return (
     <View style={[styles.container, { backgroundColor: bgColor }]}>
-      <View style={{ height: insets.top, backgroundColor: '#1A2A1A' }} />
+      <View style={{ height: insets.top, backgroundColor: isDarkMode ? '#0D140D' : '#1A2A1A' }} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 150 }}>
         
-        {/* Explore-style Header for Profile */}
-        <View style={styles.headerExplore}>
+        {/* Header */}
+        <View style={[styles.profileHeader, isDarkMode && { backgroundColor: '#0D140D' }]}>
           <TouchableOpacity onPress={() => router.back()} style={styles.iconBtn}>
-            <Ionicons name="chevron-back" size={24} color="#FFF" />
+            <Ionicons name="chevron-back" size={24} color={textColor} />
           </TouchableOpacity>
-          <Text style={styles.headerExploreTitle}>Your Profile</Text>
+          <Text style={[styles.profileHeaderTitle, { color: textColor }]}>Profile Settings</Text>
+          <TouchableOpacity style={styles.iconBtn}>
+            <Ionicons name="settings-outline" size={22} color={textColor} />
+          </TouchableOpacity>
         </View>
 
         {/* Profile Section */}
-          <View style={styles.profileSection}>
-            <View style={styles.avatarContainer}>
-              <Image source={require('@/assets/images/partial-react-logo.png')} style={styles.avatar} />
-              <TouchableOpacity style={styles.editBadge}>
-                <Ionicons name="camera" size={16} color="#FFF" />
-              </TouchableOpacity>
-            </View>
-            
-            <View style={styles.nameRow}>
-              {isEditing ? (
-                <TextInput 
-                  style={[styles.nameInput, { color: textColor }]} 
-                  value={userName} 
-                  onChangeText={setUserName} 
-                  autoFocus 
-                  onBlur={() => setIsEditing(false)}
-                />
-              ) : (
-                <Text style={[styles.userName, { color: textColor }]}>{userName}</Text>
-              )}
-              <TouchableOpacity onPress={() => setIsEditing(!isEditing)}>
-                <Ionicons name={isEditing ? "checkmark-circle" : "create-outline"} size={20} color="#00C881" />
-              </TouchableOpacity>
-            </View>
-            <Text style={[styles.userEmail, { color: subTextColor }]}>jacob.oran@design.com</Text>
+        <View style={styles.profileSection}>
+          <View style={styles.avatarContainer}>
+            <Image source={{ uri: 'https://avatar.iran.liara.run/public/65' }} style={styles.avatar} />
+            <TouchableOpacity style={styles.editBadge}>
+              <Ionicons name="pencil" size={14} color="#FFF" />
+            </TouchableOpacity>
           </View>
-
-          {/* Settings Groups */}
-          <View style={styles.settingsGroup}>
-            <Text style={[styles.groupTitle, { color: textColor }]}>Account</Text>
-            <View style={[styles.groupCard, { backgroundColor: isDarkMode ? '#333' : '#F9F9F9' }]}>
-              <SettingItem 
-                icon="receipt-outline" 
-                label="Order Tracking" 
-                color={textColor}
-                onPress={() => router.push('/tracking')} 
+          
+          <View style={styles.nameRow}>
+            {isEditing ? (
+              <TextInput 
+                style={[styles.nameInput, { color: textColor }]} 
+                value={userName} 
+                onChangeText={setUserName} 
+                autoFocus 
+                onBlur={() => setIsEditing(false)}
               />
-              <SettingItem icon="leaf-outline" label="My Garden" color={textColor} />
-              <SettingItem icon="notifications-outline" label="Notifications" color={textColor} />
+            ) : (
+              <Text style={[styles.userName, { color: textColor }]}>{userName}</Text>
+            )}
+            <TouchableOpacity onPress={() => setIsEditing(!isEditing)}>
+              <Ionicons name={isEditing ? "checkmark-circle" : "create-outline"} size={20} color="#D8F36C" />
+            </TouchableOpacity>
+          </View>
+          <Text style={[styles.userEmail, { color: subTextColor }]}>scarlett.greens@botany.com</Text>
+
+          {/* Stats Row */}
+          <View style={[styles.statsGrid, { backgroundColor: cardBg, borderColor }]}>
+            <View style={styles.statItem}>
+              <Text style={[styles.statNum, { color: textColor }]}>12</Text>
+              <Text style={[styles.statLabel, { color: subTextColor }]}>Plants</Text>
+            </View>
+            <View style={[styles.statItem, styles.statBorder]}>
+              <Text style={[styles.statNum, { color: textColor }]}>450g</Text>
+              <Text style={[styles.statLabel, { color: subTextColor }]}>CO2 Saved</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={[styles.statNum, { color: textColor }]}>2.4k</Text>
+              <Text style={[styles.statLabel, { color: subTextColor }]}>Points</Text>
             </View>
           </View>
+        </View>
 
+        {/* Achievements Section - New */}
+        <View style={styles.settingsGroup}>
+          <Text style={[styles.groupTitle, { color: textColor }]}>Badges Earned</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.badgeScroll}>
+            <BadgeItem icon="trophy" label="Top Care" color="#FFD700" />
+            <BadgeItem icon="leaf" label="Greens" color="#4CAF50" />
+            <BadgeItem icon="star" label="Expert" color="#2196F3" />
+            <BadgeItem icon="water" label="Hydrator" color="#00BCD4" />
+          </ScrollView>
+        </View>
 
-          {/* Logout Button */}
-          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-            <Ionicons name="log-out-outline" size={22} color="#FF3B30" />
-            <Text style={styles.logoutText}>Log Out</Text>
-          </TouchableOpacity>
+        {/* Account Settings */}
+        <View style={styles.settingsGroup}>
+          <Text style={[styles.groupTitle, { color: textColor }]}>My Activities</Text>
+          <View style={[styles.groupCard, { backgroundColor: cardBg, borderColor, borderWidth: 1 }]}>
+            <SettingItem icon="receipt-outline" label="Order History" color={textColor} onPress={() => router.push('/orders')} />
+            <SettingItem icon="calendar-outline" label="Care Calendar" color={textColor} />
+            <SettingItem icon="leaf-outline" label="My Virtual Garden" color={textColor} />
+            <SettingItem icon="heart-outline" label="Wishlist" badge="8" color={textColor} />
+          </View>
+        </View>
 
-        </ScrollView>
+        {/* Preferences */}
+        <View style={styles.settingsGroup}>
+          <Text style={[styles.groupTitle, { color: textColor }]}>Experience</Text>
+          <View style={[styles.groupCard, { backgroundColor: cardBg, borderColor, borderWidth: 1 }]}>
+            <View style={styles.settingItem}>
+              <View style={styles.settingLeft}>
+                <Ionicons name="moon" size={20} color="#D8F36C" />
+                <Text style={[styles.settingLabel, { color: textColor }]}>Dark Theme</Text>
+              </View>
+              <Switch
+                value={isDarkMode}
+                onValueChange={setIsDarkMode}
+                trackColor={{ false: '#333', true: '#00C881' }}
+                thumbColor={isDarkMode ? '#FFF' : '#AAA'}
+              />
+            </View>
+            <View style={styles.settingItem}>
+              <View style={styles.settingLeft}>
+                <Ionicons name="notifications" size={20} color="#FF9500" />
+                <Text style={[styles.settingLabel, { color: textColor }]}>Push Notifications</Text>
+              </View>
+              <Switch
+                value={pushNotifs}
+                onValueChange={setPushNotifs}
+                trackColor={{ false: '#333', true: '#00C881' }}
+                thumbColor={pushNotifs ? '#FFF' : '#AAA'}
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* Logout Button */}
+        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+          <Ionicons name="log-out-outline" size={22} color="#FF3B30" />
+          <Text style={styles.logoutText}>Log Out</Text>
+        </TouchableOpacity>
+
+        <Text style={[styles.versionText, { color: subTextColor }]}>Green Leaf Marketplace • Hackathon Version 1.0</Text>
+
+      </ScrollView>
+    </View>
+  );
+}
+
+function BadgeItem({ icon, label, color }: any) {
+  return (
+    <View style={styles.badgeCard}>
+      <View style={[styles.badgeIconWrap, { backgroundColor: color + '20' }]}>
+        <Ionicons name={icon} size={24} color={color} />
+      </View>
+      <Text style={styles.badgeLabel}>{label}</Text>
     </View>
   );
 }
@@ -95,191 +166,85 @@ function SettingItem({ icon, label, badge, color, onPress }: any) {
   return (
     <TouchableOpacity onPress={onPress} style={styles.settingItem}>
       <View style={styles.settingLeft}>
-        <Ionicons name={icon} size={22} color={color} />
+        <Ionicons name={icon} size={20} color={color} />
         <Text style={[styles.settingLabel, { color }]}>{label}</Text>
       </View>
       <View style={styles.settingRight}>
         {badge && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{badge}</Text>
+          <View style={styles.countBadge}>
+            <Text style={styles.countBadgeText}>{badge}</Text>
           </View>
         )}
-        <Ionicons name="chevron-forward" size={18} color="#CCC" />
+        <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.3)" />
       </View>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  headerExplore: {
-    padding: 25,
-    paddingTop: 50,
-    backgroundColor: '#1A2A1A',
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
-    marginBottom: 40,
-  },
-  headerExploreTitle: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: '#FFF',
-    marginTop: 15,
-  },
-  iconBtn: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoutTopBtn: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  profileSection: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  avatarContainer: {
-    position: 'relative',
-    marginBottom: 20,
-  },
-  avatar: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#EEE',
-    borderWidth: 4,
-    borderColor: '#FFF',
-  },
-  editBadge: {
-    position: 'absolute',
-    bottom: 0,
-    right: 5,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#00C881',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: '#FFF',
-  },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  userName: {
-    fontSize: 26,
-    fontWeight: '900',
-  },
-  nameInput: {
-    fontSize: 26,
-    fontWeight: '900',
-    borderBottomWidth: 1,
-    borderBottomColor: '#00C881',
-    minWidth: 150,
-    textAlign: 'center',
-  },
-  userEmail: {
-    fontSize: 14,
-    marginTop: 5,
-  },
-  settingsGroup: {
-    paddingHorizontal: 25,
-    marginBottom: 30,
-  },
-  groupTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 15,
-  },
-  groupCard: {
-    borderRadius: 25,
-    padding: 10,
-  },
-  settingItem: {
+  container: { flex: 1 },
+  profileHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 15,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
   },
-  settingLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 15,
+  profileHeaderTitle: { fontSize: 18, fontWeight: '900' },
+  iconBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  profileSection: { alignItems: 'center', marginVertical: 20 },
+  avatarContainer: { position: 'relative', marginBottom: 15 },
+  avatar: {
+    width: 100, height: 100, borderRadius: 50, backgroundColor: '#1A2A1A',
+    borderWidth: 3, borderColor: '#D8F36C',
   },
-  settingLabel: {
-    fontSize: 16,
-    fontWeight: '600',
+  editBadge: {
+    position: 'absolute', bottom: 0, right: 0, width: 30, height: 30,
+    borderRadius: 15, backgroundColor: '#00C881', alignItems: 'center',
+    justifyContent: 'center', borderWidth: 2, borderColor: '#FFF',
   },
-  settingRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  userName: { fontSize: 24, fontWeight: '900' },
+  nameInput: {
+    fontSize: 24, fontWeight: '900', borderBottomWidth: 1,
+    borderBottomColor: '#00C881', minWidth: 120, textAlign: 'center',
   },
-  statLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 15,
+  userEmail: { fontSize: 13, marginTop: 4 },
+
+  // Stats Grid
+  statsGrid: {
+    flexDirection: 'row', marginTop: 25, marginHorizontal: 20,
+    borderRadius: 20, padding: 20, borderWidth: 1,
   },
-  statSub: {
-    fontSize: 10,
-    color: '#888',
+  statItem: { flex: 1, alignItems: 'center' },
+  statBorder: { borderLeftWidth: 1, borderRightWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  statNum: { fontSize: 20, fontWeight: '900' },
+  statLabel: { fontSize: 10, fontWeight: '600', marginTop: 4, textTransform: 'uppercase' },
+
+  // Badges
+  badgeScroll: { paddingHorizontal: 20, gap: 15 },
+  badgeCard: { alignItems: 'center', gap: 6 },
+  badgeIconWrap: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
+  badgeLabel: { fontSize: 11, fontWeight: '700', color: '#888' },
+
+  // Settings
+  settingsGroup: { paddingHorizontal: 20, marginBottom: 25 },
+  groupTitle: { fontSize: 15, fontWeight: '900', marginBottom: 15, textTransform: 'uppercase', letterSpacing: 1 },
+  groupCard: { borderRadius: 20, overflow: 'hidden' },
+  settingItem: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16,
   },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 200, 129, 0.1)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
-    gap: 5,
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#00C881',
-  },
-  statusText: {
-    fontSize: 10,
-    fontWeight: '900',
-    color: '#00C881',
-  },
-  badge: {
-    backgroundColor: '#FF3B30',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-  },
-  badgeText: {
-    color: '#FFF',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
+  settingLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  settingLabel: { fontSize: 15, fontWeight: '700' },
+  settingRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  countBadge: { backgroundColor: '#D8F36C', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
+  countBadgeText: { color: '#1A2A1A', fontSize: 10, fontWeight: '900' },
+  
   logoutBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    marginHorizontal: 25,
-    marginTop: 10,
-    marginBottom: 30,
-    paddingVertical: 16,
-    borderRadius: 25,
-    borderWidth: 1.5,
-    borderColor: '#FF3B30',
-    backgroundColor: 'rgba(255, 59, 48, 0.05)',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
+    marginHorizontal: 20, marginTop: 10, marginBottom: 20, height: 56,
+    borderRadius: 16, backgroundColor: 'rgba(255, 59, 48, 0.1)',
   },
-  logoutText: {
-    color: '#FF3B30',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+  logoutText: { color: '#FF3B30', fontSize: 16, fontWeight: '900' },
+  versionText: { textAlign: 'center', fontSize: 11, marginBottom: 40, fontWeight: '600' },
 });

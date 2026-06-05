@@ -1,24 +1,43 @@
 import React from 'react';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Image, TextInput, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { useCart } from '../context/CartContext';
+import { useCart } from '@/context/CartContext';
+import { StatusBar } from 'expo-status-bar';
 
 const { width } = Dimensions.get('window');
 
 const CATEGORIES = [
-  { id: '1', name: 'Indoor', icon: 'home', color: '#E8F5E9' },
-  { id: '2', name: 'Outdoor', icon: 'sunny', color: '#FFF9C4' },
-  { id: '3', name: 'Succulents', icon: 'water', color: '#E1F5FE' },
-  { id: '4', name: 'Seeds', icon: 'leaf', color: '#F3E5F5' },
-  { id: '5', name: 'Pots', icon: 'cube', color: '#FFE0B2' },
-  { id: '6', name: 'Fertilizers', icon: 'flask', color: '#F1F8E9' },
+  { id: '1', name: 'Indoor', icon: '🏠', color: 'rgba(232,245,233,0.05)' },
+  { id: '2', name: 'Outdoor', icon: '☀️', color: 'rgba(255,249,196,0.05)' },
+  { id: '3', name: 'Succulents', icon: '🌵', color: 'rgba(225,245,254,0.05)' },
+  { id: '4', name: 'Seeds', icon: '🌱', color: 'rgba(243,229,245,0.05)' },
+  { id: '5', name: 'Pots', icon: '🏺', color: 'rgba(255,224,178,0.05)' },
+  { id: '6', name: 'Fertilizers', icon: '🧪', color: 'rgba(241,248,233,0.05)' },
+  { id: '7', name: 'Tools', icon: '✂️', color: 'rgba(252,228,236,0.05)' },
+  { id: '8', name: 'Pesticides', icon: '🛡', color: 'rgba(232,234,246,0.05)' },
+  { id: '9', name: 'Soil Mix', icon: '🪴', color: 'rgba(239,235,233,0.05)' },
 ];
 
-const ALL_PLANTS = [
+const PLANT_CARE_ESSENTIALS = [
+  { id: '1', name: 'Neem Oil Spray', price: '₹199', desc: 'Organic pest control', icon: 'spray-bottle' },
+  { id: '2', name: 'NPK 19-19-19', price: '₹129', desc: 'All-purpose fertilizer', icon: 'leaf-circle' },
+  { id: '3', name: 'Pruning Shears', price: '₹299', desc: 'Sharp stainless steel', icon: 'content-cut' },
+  { id: '4', name: 'Potting Mix', price: '₹149', desc: 'Rich organic blend', icon: 'flower-pollen' },
+  { id: '5', name: 'Root Hormone', price: '₹249', desc: 'Fast root growth', icon: 'sprout' },
+];
+
+const SEASONAL_PICKS = [
+  { id: '1', name: 'Marigold', price: '₹29', season: 'Summer', img: require('@/assets/images/succulent_plant.png') },
+  { id: '2', name: 'Dahlia', price: '₹79', season: 'Monsoon', img: require('@/assets/images/office_plant.png') },
+  { id: '3', name: 'Chrysanthemum', price: '₹99', season: 'Winter', img: require('@/assets/images/fiddle_leaf_fig.png') },
+  { id: '4', name: 'Hibiscus', price: '₹49', season: 'All Year', img: require('@/assets/images/succulent_plant.png') },
+];
+
+const TRENDING = [
   { id: '1', name: 'Snake Plant', price: '₹499', rating: '4.8', img: require('@/assets/images/succulent_plant.png') },
   { id: '2', name: 'Fiddle Leaf', price: '₹1299', rating: '4.9', img: require('@/assets/images/fiddle_leaf_fig.png') },
   { id: '3', name: 'Peace Lily', price: '₹349', rating: '4.7', img: require('@/assets/images/office_plant.png') },
@@ -33,57 +52,117 @@ export default function ExploreScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={{ height: insets.top, backgroundColor: '#1A2A1A' }} />
-      
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+      <StatusBar style="light" />
+      <View style={{ height: insets.top, backgroundColor: '#1A1A1A' }} />
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Explore Garden</Text>
           <View style={styles.searchBar}>
-            <Ionicons name="search" size={20} color="#666" />
-            <TextInput style={styles.searchInput} placeholder="Search plants, tools, seeds..." />
+            <Ionicons name="search" size={20} color="#AAA" />
+            <TextInput 
+              style={styles.searchInput} 
+              placeholder="Search plants, tools, seeds..." 
+              placeholderTextColor="#666" 
+            />
           </View>
         </View>
 
+        {/* Categories Grid */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Categories</Text>
           <View style={styles.categoryGrid}>
             {CATEGORIES.map(cat => (
-              <TouchableOpacity key={cat.id} style={[styles.catCard, { backgroundColor: cat.color }]}>
-                <Ionicons name={cat.icon as any} size={28} color="#1A2A1A" />
+              <TouchableOpacity
+                key={cat.id}
+                style={[styles.catCard, { backgroundColor: cat.color }]}
+                onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/store'); }}
+              >
+                <Text style={styles.catEmoji}>{cat.icon}</Text>
                 <Text style={styles.catName}>{cat.name}</Text>
               </TouchableOpacity>
             ))}
           </View>
         </View>
 
+        {/* Plant Care Essentials */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
+          <View style={styles.sectionRow}>
+            <Text style={styles.sectionTitle}>Plant Care Essentials</Text>
+            <TouchableOpacity><Text style={styles.seeAll}>See All</Text></TouchableOpacity>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
+            {PLANT_CARE_ESSENTIALS.map(item => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.careCard}
+                onPress={() => { addItem(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+              >
+                <View style={styles.careIconBox}>
+                  <MaterialCommunityIcons name={item.icon as any} size={28} color="#00C881" />
+                </View>
+                <Text style={styles.careName} numberOfLines={1}>{item.name}</Text>
+                <Text style={styles.careDesc} numberOfLines={1}>{item.desc}</Text>
+                <View style={styles.carePriceRow}>
+                  <Text style={styles.carePrice}>{item.price}</Text>
+                  <View style={styles.miniAdd}>
+                    <Ionicons name="add" size={14} color="#00C881" />
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Seasonal Picks */}
+        <View style={styles.section}>
+          <View style={styles.sectionRow}>
+            <Text style={styles.sectionTitle}>Seasonal Picks</Text>
+            <TouchableOpacity><Text style={styles.seeAll}>See All</Text></TouchableOpacity>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
+            {SEASONAL_PICKS.map(item => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.seasonCard}
+                onPress={() => { addItem(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+              >
+                <Image source={item.img} style={styles.seasonImg} resizeMode="contain" />
+                <View style={styles.seasonBadge}>
+                  <Text style={styles.seasonBadgeText}>{item.season}</Text>
+                </View>
+                <Text style={styles.seasonName}>{item.name}</Text>
+                <Text style={styles.seasonPrice}>{item.price}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Trending Plants */}
+        <View style={styles.section}>
+          <View style={styles.sectionRow}>
             <Text style={styles.sectionTitle}>Trending Plants</Text>
             <TouchableOpacity><Text style={styles.seeAll}>See All</Text></TouchableOpacity>
           </View>
-          
           <View style={styles.plantGrid}>
-            {ALL_PLANTS.map(plant => (
+            {TRENDING.map(plant => (
               <TouchableOpacity key={plant.id} style={styles.plantCard} onPress={() => router.push('/details')}>
                 <View style={styles.imgBox}>
                   <Image source={plant.img} style={styles.pImg} resizeMode="contain" />
+                  <View style={styles.ratingPill}>
+                    <Text style={styles.ratingText}>{plant.rating} ★</Text>
+                  </View>
                 </View>
                 <View style={styles.pInfo}>
                   <Text style={styles.pName}>{plant.name}</Text>
-                  <View style={styles.codRow}>
-                    <Ionicons name="cash-outline" size={12} color="#00C881" />
-                    <Text style={styles.codText}>Cash on Delivery</Text>
-                  </View>
                   <View style={styles.pRow}>
                     <Text style={styles.pPrice}>{plant.price}</Text>
-                    <TouchableOpacity 
-                      style={styles.exploreAddBtn}
-                      onPress={() => {
-                        addItem();
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      }}
+                    <TouchableOpacity
+                      style={styles.addBtn}
+                      onPress={() => { addItem(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
                     >
-                      <Text style={styles.exploreAddText}>ADD</Text>
+                      <Text style={styles.addBtnText}>ADD</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -97,139 +176,157 @@ export default function ExploreScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFF',
-  },
+  container: { flex: 1, backgroundColor: '#121212' },
   header: {
-    padding: 25,
-    backgroundColor: '#1A2A1A',
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
+    padding: 22,
+    backgroundColor: '#1A1A1A',
+    borderBottomLeftRadius: 35,
+    borderBottomRightRadius: 35,
   },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: '#FFF',
-    marginBottom: 20,
-  },
+  headerTitle: { fontSize: 26, fontWeight: '900', color: '#FFF', marginBottom: 16 },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF',
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    height: 55,
+    backgroundColor: '#242424',
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    height: 48,
   },
-  searchInput: {
-    flex: 1,
-    marginLeft: 10,
-    fontSize: 16,
-  },
-  section: {
-    padding: 25,
-  },
-  sectionHeader: {
+  searchInput: { flex: 1, marginLeft: 10, fontSize: 14, color: '#FFF' },
+
+  section: { paddingTop: 22, paddingHorizontal: 20 },
+  sectionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 14,
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: '#000',
-  },
-  seeAll: {
-    color: '#00C881',
-    fontWeight: 'bold',
-  },
+  sectionTitle: { fontSize: 20, fontWeight: '900', color: '#FFF', marginBottom: 14 },
+  seeAll: { color: '#00C881', fontWeight: 'bold', fontSize: 13, marginBottom: 14 },
+
   categoryGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 15,
+    gap: 10,
     justifyContent: 'space-between',
   },
   catCard: {
-    width: (width - 80) / 3,
-    height: 100,
-    borderRadius: 25,
+    width: (width - 60) / 3,
+    height: 85,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    elevation: 2,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
-  catName: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#333',
+  catEmoji: { fontSize: 26 },
+  catName: { fontSize: 11, fontWeight: '700', color: '#E0E0E0' },
+
+  hScroll: { gap: 12, paddingBottom: 5 },
+  careCard: {
+    width: 135,
+    backgroundColor: '#1E1E1E',
+    borderRadius: 18,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
+  careIconBox: {
+    width: 46,
+    height: 46,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  careName: { fontSize: 13, fontWeight: '700', color: '#FFF' },
+  careDesc: { fontSize: 10, color: '#AAA', marginTop: 2 },
+  carePriceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  carePrice: { fontSize: 15, fontWeight: '900', color: '#00C881' },
+  miniAdd: {
+    width: 26,
+    height: 26,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: '#00C881',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  seasonCard: {
+    width: 120,
+    backgroundColor: '#1E1E1E',
+    borderRadius: 18,
+    padding: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  seasonImg: { width: 70, height: 70, marginBottom: 6 },
+  seasonBadge: {
+    backgroundColor: 'rgba(0,200,129,0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginBottom: 4,
+  },
+  seasonBadgeText: { fontSize: 9, fontWeight: '800', color: '#00C881' },
+  seasonName: { fontSize: 12, fontWeight: '700', color: '#FFF' },
+  seasonPrice: { fontSize: 14, fontWeight: '900', color: '#00C881', marginTop: 2 },
+
   plantGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: 15,
+    gap: 12,
   },
   plantCard: {
-    width: (width - 65) / 2,
-    backgroundColor: '#F9F9F9',
-    borderRadius: 30,
+    width: (width - 52) / 2,
+    backgroundColor: '#1E1E1E',
+    borderRadius: 20,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#F0F0F0',
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   imgBox: {
-    height: 150,
+    height: 130,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
-  },
-  pImg: {
-    width: '100%',
-    height: '100%',
-  },
-  pInfo: {
+    backgroundColor: 'rgba(255,255,255,0.03)',
     padding: 15,
-    backgroundColor: '#FFF',
   },
-  pName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 5,
+  pImg: { width: '100%', height: '100%' },
+  ratingPill: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#00C881',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
   },
-  codRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: 5,
-  },
-  codText: {
-    fontSize: 10,
-    color: '#00C881',
-    fontWeight: 'bold',
-  },
+  ratingText: { color: '#FFF', fontSize: 10, fontWeight: 'bold' },
+  pInfo: { padding: 12, backgroundColor: '#1E1E1E' },
+  pName: { fontSize: 14, fontWeight: 'bold', color: '#FFF', marginBottom: 6 },
   pRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  pPrice: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: '#00C881',
-  },
-  exploreAddBtn: {
-    backgroundColor: '#00C881',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+  pPrice: { fontSize: 15, fontWeight: '900', color: '#FFF' },
+  addBtn: {
+    borderWidth: 1.5,
+    borderColor: '#00C881',
     borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
   },
-  exploreAddText: {
-    color: '#FFF',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
+  addBtnText: { color: '#00C881', fontSize: 10, fontWeight: '900' },
 });

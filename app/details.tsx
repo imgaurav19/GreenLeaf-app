@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, Image, TouchableOpacity, SafeAreaView, Dimensions, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, Image, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -117,7 +118,7 @@ export default function DetailsScreen() {
             <Text style={styles.totalLabel}>Total Amount</Text>
             <Text style={styles.totalPrice}>₹{plant.price * quantity}</Text>
           </View>
-          <TouchableOpacity style={styles.addCartBtn} onPress={() => router.push('/tracking')}>
+          <TouchableOpacity style={styles.addCartBtn} onPress={() => router.push('/checkout')}>
             <Text style={styles.addCartText}>Order (Cash on Delivery)</Text>
           </TouchableOpacity>
         </View>

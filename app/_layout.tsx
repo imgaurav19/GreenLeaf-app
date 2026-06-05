@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
-import { CartProvider } from './context/CartContext';
+import { CartProvider } from '@/context/CartContext';
+import { UserProvider } from '@/context/UserContext';
 
 export default function RootLayout() {
   const [initializing, setInitializing] = useState(false);
@@ -26,17 +27,27 @@ export default function RootLayout() {
   if (initializing) return null;
 
   return (
-    <CartProvider>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="login" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="scan" options={{ presentation: 'fullScreenModal', headerShown: false }} />
-        <Stack.Screen name="subscription" options={{ presentation: 'fullScreenModal', headerShown: false }} />
-        <Stack.Screen name="details" options={{ presentation: 'modal', headerShown: false }} />
-        <Stack.Screen name="therapy" options={{ presentation: 'fullScreenModal', headerShown: false }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </CartProvider>
+    <UserProvider>
+      <CartProvider>
+        <Stack screenOptions={{ 
+          headerShown: false,
+          contentStyle: { backgroundColor: '#121212' }
+        }}>
+          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+          <Stack.Screen name="login" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="scan" options={{ presentation: 'fullScreenModal', headerShown: false }} />
+          <Stack.Screen name="subscription" options={{ presentation: 'fullScreenModal', headerShown: false }} />
+          <Stack.Screen name="details" options={{ presentation: 'modal', headerShown: false }} />
+          <Stack.Screen name="therapy" options={{ presentation: 'fullScreenModal', headerShown: false }} />
+          <Stack.Screen name="checkout" options={{ headerShown: false }} />
+          <Stack.Screen name="tracking" options={{ headerShown: false }} />
+          <Stack.Screen name="store" options={{ headerShown: false }} />
+          <Stack.Screen name="stacked" options={{ headerShown: false }} />
+          <Stack.Screen name="orders" options={{ headerShown: false }} />
+        </Stack>
+        <StatusBar style="light" />
+      </CartProvider>
+    </UserProvider>
   );
 }

@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, TextInput, Image, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, Alert, StatusBar } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, TextInput, Image, KeyboardAvoidingView, Platform, ScrollView, Alert, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useUser } from '@/context/UserContext';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { setUserName } = useUser();
+  const [name, setName] = useState('Gaurav');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
@@ -13,114 +17,147 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (loading) return;
+    if (step === 'phone') {
+      if (phone.length < 10) {
+        Alert.alert('Invalid Number', 'Please enter a valid 10-digit mobile number.');
+        return;
+      }
+    }
+    
     setLoading(true);
 
     // MOCK LOGIN FOR HACKATHON
     setTimeout(() => {
       if (step === 'phone') {
+        setUserName(name); // Save name to context
         setStep('otp');
       } else {
-        router.replace('/(tabs)');
+        // Check for specific passcodes
+        if (otp === '544657' || otp === '454545' || otp === '123456') {
+          router.replace('/(tabs)');
+        } else {
+          Alert.alert('Invalid OTP', 'Please use the tester codes: 544657 or 454545');
+        }
       }
       setLoading(false);
     }, 1000);
   };
 
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    // MOCK GOOGLE LOGIN
-    setTimeout(() => {
-      router.replace('/(tabs)');
-      setLoading(false);
-    }, 1000);
-  };
-
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFF" />
-      <SafeAreaView style={{ flex: 1, paddingTop: Platform.OS === 'android' ? 40 : 0 }}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
-        </TouchableOpacity>
-
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
+      <StatusBar barStyle="dark-content" />
+      <SafeAreaView style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-          <View style={styles.brandHero}>
-            <LinearGradient colors={['#D8F36C', '#B2F44C']} style={styles.logoCircle}>
-              <Ionicons name="leaf" size={40} color="#1A2A1A" />
-            </LinearGradient>
-            <Text style={styles.brandName}>Green Leaf</Text>
-            <Text style={styles.brandTagline}>Your AI Botanical Expert</Text>
-          </View>
-          <Text style={styles.title}>{step === 'phone' ? 'Hello!' : 'Check your phone'}</Text>
-          <Text style={styles.subtitle}>
-            {step === 'phone' ? 'Log in with your mobile number to start caring for your plants.' : 'We sent a 6-digit code to your mobile number.'}
-          </Text>
-
-          <View style={styles.inputSection}>
+          
+          <View style={styles.formSection}>
             {step === 'phone' ? (
-              <View style={styles.inputWrapper}>
-                <Text style={styles.label}>Mobile Number</Text>
-                <View style={styles.inputField}>
-                  <Text style={styles.prefix}>+91</Text>
-                  <TextInput
-                    style={styles.textInput}
-                    placeholder="123 456 7890"
-                    keyboardType="phone-pad"
-                    value={phone}
-                    onChangeText={setPhone}
-                    autoFocus
-                  />
+              <>
+                <Text style={styles.mainTitle}>Enter your details</Text>
+                
+
+
+                <View style={styles.row}>
+                  <View style={styles.countryPicker}>
+                    <Image source={{ uri: 'https://flagcdn.com/w40/in.png' }} style={styles.flag} />
+                    <Ionicons name="chevron-down" size={14} color="#000" />
+                  </View>
+
+                  <View style={styles.phoneInputRow}>
+                    <Text style={styles.prefix}>+91</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Mobile number"
+                      placeholderTextColor="#999"
+                      keyboardType="phone-pad"
+                      maxLength={10}
+                      value={phone}
+                      onChangeText={setPhone}
+                      autoFocus
+                    />
+                  </View>
                 </View>
-              </View>
-            ) : (
-              <View style={styles.inputWrapper}>
-                <Text style={styles.label}>OTP Code</Text>
-                <TextInput
-                  style={styles.otpInput}
-                  placeholder="0 0 0 0 0 0"
-                  keyboardType="number-pad"
-                  maxLength={6}
-                  value={otp}
-                  onChangeText={setOtp}
-                  autoFocus
-                />
-              </View>
-            )}
-          </View>
 
-          <TouchableOpacity style={styles.loginBtn} onPress={handleLogin} disabled={loading}>
-            <LinearGradient colors={['#00C881', '#009D65']} style={styles.btnGradient}>
-              <Text style={styles.btnText}>{loading ? 'Please wait...' : (step === 'phone' ? 'Send OTP' : 'Verify')}</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.blackBtn, loading && { opacity: 0.7 }]} 
+                  onPress={handleLogin} 
+                  disabled={loading}
+                >
+                  <Text style={styles.blackBtnText}>{loading ? 'Please wait...' : 'Continue'}</Text>
+                </TouchableOpacity>
 
-          {step === 'phone' && (
-            <View style={styles.socialSection}>
-              <View style={styles.dividerRow}>
-                <View style={styles.divider} />
-                <Text style={styles.dividerText}>or continue with</Text>
-                <View style={styles.divider} />
-              </View>
+                <View style={styles.dividerRow}>
+                  <View style={styles.line} />
+                  <Text style={styles.orText}>or</Text>
+                  <View style={styles.line} />
+                </View>
 
-              <View style={styles.socialBtns}>
-                <TouchableOpacity style={[styles.socialBtn, styles.googleFullBtn]} onPress={handleGoogleLogin} disabled={loading}>
+                <TouchableOpacity style={styles.socialBtn} onPress={() => router.replace('/(tabs)')}>
                   <Ionicons name="logo-google" size={20} color="#EA4335" />
                   <Text style={styles.socialBtnText}>Continue with Google</Text>
                 </TouchableOpacity>
-              </View>
-            </View>
-          )}
 
-          {step === 'otp' && (
-            <View style={styles.otpActions}>
-              <TouchableOpacity onPress={() => setStep('phone')} style={styles.resendBtn}>
-                <Text style={styles.resendText}>Resend Code</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.resendBtn}>
-                <Text style={styles.forgotText}>Forgot Password?</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+                <TouchableOpacity style={styles.socialBtn}>
+                  <Ionicons name="mail-outline" size={20} color="#000" />
+                  <Text style={styles.socialBtnText}>Continue with email</Text>
+                </TouchableOpacity>
+
+                <View style={styles.dividerRow}>
+                  <View style={styles.line} />
+                  <Text style={styles.orText}>or</Text>
+                  <View style={styles.line} />
+                </View>
+
+                <TouchableOpacity style={styles.findAccountBtn}>
+                  <Ionicons name="search-outline" size={20} color="#000" />
+                  <Text style={styles.findAccountText}>Find my account</Text>
+                </TouchableOpacity>
+
+                <View style={styles.footerWrap}>
+                  <Text style={styles.footerNote}>
+                    By continuing, you agree to our <Text style={styles.boldText}>Terms of Service</Text> & <Text style={styles.boldText}>Privacy Policy</Text>.
+                  </Text>
+                </View>
+
+                <TouchableOpacity 
+                  style={styles.bypassLink} 
+                  onPress={() => router.replace('/(tabs)')}
+                >
+                  <Text style={styles.bypassText}>Tester Bypass (Skip to App)</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <Text style={styles.mainTitle}>Verify Details</Text>
+                <Text style={styles.subtitle}>Enter the 6-digit code sent to +91-{phone}</Text>
+                
+                <View style={styles.otpBox}>
+                  <TextInput
+                    style={styles.otpInput}
+                    placeholder="000000"
+                    placeholderTextColor="#CCC"
+                    keyboardType="number-pad"
+                    maxLength={6}
+                    value={otp}
+                    onChangeText={setOtp}
+                    autoFocus
+                  />
+                </View>
+
+                <TouchableOpacity 
+                  style={[styles.blackBtn, loading && { opacity: 0.7 }]} 
+                  onPress={handleLogin} 
+                  disabled={loading}
+                >
+                  <Text style={styles.blackBtnText}>{loading ? 'Verifying...' : 'Verify & Proceed'}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={() => setStep('phone')} style={styles.backBtn}>
+                  <Text style={styles.backBtnText}>Change Mobile Number</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+
         </ScrollView>
       </SafeAreaView>
     </KeyboardAvoidingView>
@@ -132,178 +169,187 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFF',
   },
-  backBtn: {
-    padding: 20,
-    marginTop: 10,
-  },
   content: {
     flexGrow: 1,
+    paddingTop: 40,
+  },
+  formSection: {
     paddingHorizontal: 25,
-    paddingTop: 10,
-    paddingBottom: 30,
+    paddingTop: 20,
   },
-  brandHero: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 15,
-    shadowColor: '#D8F36C',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
-    elevation: 10,
-  },
-  brandName: {
-    fontSize: 32,
-    fontWeight: '900',
+  mainTitle: {
+    fontSize: 24,
+    fontWeight: '800',
     color: '#000',
-    letterSpacing: -1,
+    marginBottom: 30,
   },
-  brandTagline: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '600',
-    marginTop: 5,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: '#000',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: '#666',
-    lineHeight: 22,
-    marginBottom: 25,
-  },
-  inputSection: {
-    marginBottom: 20,
-  },
-  inputWrapper: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#999',
-    marginBottom: 10,
-  },
-  inputField: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderBottomWidth: 2,
-    borderBottomColor: '#EEE',
-    paddingBottom: 10,
+    gap: 12,
+    marginBottom: 25,
+  },
+  countryPicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 12,
+    paddingVertical: 14,
+    borderRadius: 12,
+    gap: 8,
+  },
+  flag: {
+    width: 24,
+    height: 18,
+    borderRadius: 2,
+  },
+  nameInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#000',
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    height: 56,
+    marginBottom: 15,
+    gap: 12,
+  },
+  phoneInputRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#000',
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    height: 56,
   },
   prefix: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '700',
     color: '#000',
-    marginRight: 15,
+    marginRight: 8,
   },
-  textInput: {
+  input: {
     flex: 1,
-    fontSize: 18,
+    fontSize: 16,
+    fontWeight: '600',
     color: '#000',
-    fontWeight: '500',
   },
-  otpInput: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000',
-    borderBottomWidth: 2,
-    borderBottomColor: '#00C881',
-    paddingBottom: 15,
-    textAlign: 'center',
-    width: '100%',
-    letterSpacing: 2,
+  inputIcon: {
+    marginLeft: 10,
   },
-  loginBtn: {
-    height: 55,
-    borderRadius: 28,
-    overflow: 'hidden',
-    marginTop: 15,
-  },
-  btnGradient: {
-    flex: 1,
+  blackBtn: {
+    backgroundColor: '#000',
+    height: 56,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 25,
   },
-  btnText: {
+  blackBtnText: {
     color: '#FFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  socialSection: {
-    marginTop: 35,
+    fontSize: 16,
+    fontWeight: '800',
   },
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 25,
+    marginVertical: 20,
   },
-  divider: {
+  line: {
     flex: 1,
     height: 1,
-    backgroundColor: '#EEE',
+    backgroundColor: '#E5E7EB',
   },
-  dividerText: {
-    color: '#999',
+  orText: {
     marginHorizontal: 15,
+    color: '#9CA3AF',
     fontSize: 14,
   },
-  socialBtns: {
-    width: '100%',
-    alignItems: 'center',
-  },
   socialBtn: {
-    height: 55,
-    borderRadius: 28,
-    borderWidth: 1,
-    borderColor: '#EEE',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  googleFullBtn: {
-    width: '100%',
-    flexDirection: 'row',
+    height: 56,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#F3F4F6',
     gap: 12,
-    backgroundColor: '#FFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
+    marginBottom: 15,
   },
   socialBtnText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: '700',
+    color: '#000',
   },
-  resendBtn: {
-    alignSelf: 'center',
-    marginTop: 30,
-  },
-  resendText: {
-    color: '#00C881',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  otpActions: {
+  findAccountBtn: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    marginTop: 10,
   },
-  forgotText: {
-    color: '#999',
-    fontWeight: 'bold',
+  findAccountText: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#000',
+  },
+  footerWrap: {
+    marginTop: 40,
+    marginBottom: 20,
+  },
+  footerNote: {
+    fontSize: 12,
+    color: '#6B7280',
+    textAlign: 'left',
+    lineHeight: 18,
+  },
+  boldText: {
+    fontWeight: '800',
+    color: '#000',
+  },
+  bypassLink: {
+    alignSelf: 'center',
+    marginTop: 20,
+    padding: 10,
+  },
+  bypassText: {
+    color: '#9CA3AF',
+    fontSize: 14,
+    textDecorationLine: 'underline',
+  },
+  subtitle: {
+    fontSize: 15,
+    color: '#666',
+    marginBottom: 25,
+  },
+  otpBox: {
+    height: 60,
+    borderWidth: 1.5,
+    borderColor: '#000',
+    borderRadius: 12,
+    backgroundColor: '#FAFAFA',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 25,
+  },
+  otpInput: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#000',
+    textAlign: 'center',
+    width: '100%',
+    letterSpacing: 10,
+  },
+  backBtn: {
+    alignSelf: 'center',
+    marginTop: 15,
+  },
+  backBtnText: {
+    color: '#000',
+    fontWeight: '700',
     fontSize: 14,
   },
 });

@@ -1,126 +1,153 @@
 import React from 'react';
-import { StyleSheet, View, TouchableOpacity, Text } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text, Image, Animated } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { Tabs, router } from 'expo-router';
-import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
-import { useCart } from '../context/CartContext';
+import { useCart } from '@/context/CartContext';
+import { useUser } from '@/context/UserContext';
+import { TabBarProvider, useTabBar } from '@/context/TabBarContext';
 
-export default function TabLayout() {
+const VISIBLE_ROUTES = ['index', 'explore', 'scan_placeholder', 'bag_placeholder', 'profile'];
+
+function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const insets = useSafeAreaInsets();
   const { itemCount } = useCart();
+  const { avatar } = useUser();
+  const { tabBarTranslateY, tabBarOpacity } = useTabBar();
+
+  const renderIcon = (routeName: string, isFocused: boolean) => {
+    const color = isFocused ? '#1877F2' : '#000000';
+    switch (routeName) {
+      case 'index':
+        return <Ionicons name={isFocused ? 'home' : 'home-outline'} size={26} color={color} />;
+      case 'explore':
+        return <Ionicons name={isFocused ? 'play-circle' : 'play-circle-outline'} size={26} color={color} />;
+      case 'scan_placeholder':
+        return <Ionicons name={isFocused ? 'people' : 'people-outline'} size={26} color={color} />;
+      case 'bag_placeholder':
+        return (
+          <View>
+            <Ionicons name={isFocused ? 'storefront' : 'storefront-outline'} size={26} color={color} />
+            {itemCount > 0 && (
+              <View style={styles.badgeContainer}>
+                <Text style={styles.badgeText}>{itemCount}</Text>
+              </View>
+            )}
+          </View>
+        );
+      case 'profile':
+        return (
+          <View style={[styles.avatarWrap, isFocused && styles.avatarActive]}>
+            <Image source={{ uri: avatar }} style={styles.avatarImage} />
+          </View>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const visibleRoutes = state.routes.filter(r => VISIBLE_ROUTES.includes(r.name));
+
+  return (
+    <Animated.View
+      style={[
+        styles.tabBarOuter,
+        {
+          paddingBottom: insets.bottom,
+          transform: [{ translateY: tabBarTranslateY }],
+          opacity: tabBarOpacity,
+        },
+      ]}
+    >
+      <BlurView intensity={85} tint="light" style={styles.tabBarBlur}>
+        {visibleRoutes.map((route) => {
+          const isFocused = state.routes[state.index].name === route.name;
+
+          const onPress = () => {
+            if (route.name === 'scan_placeholder') {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              router.push('/scan');
+              return;
+            }
+            if (route.name === 'bag_placeholder') {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              router.push('/checkout');
+              return;
+            }
+            const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+            if (!isFocused && !event.defaultPrevented) {
+              navigation.navigate(route.name);
+            }
+          };
+
+          return (
+            <TouchableOpacity key={route.key} onPress={onPress} style={styles.tabItem} activeOpacity={0.7}>
+              {isFocused && <View style={styles.activeIndicator} />}
+              {renderIcon(route.name, isFocused)}
+            </TouchableOpacity>
+          );
+        })}
+      </BlurView>
+    </Animated.View>
+  );
+}
+
+function TabLayoutInner() {
+  const { itemCount } = useCart();
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={{ flex: 1 }}>
       <Tabs
-        screenOptions={{
-          headerShown: false,
-          tabBarShowLabel: true,
-          tabBarActiveTintColor: '#D8F36C',
-          tabBarInactiveTintColor: 'rgba(255,255,255,0.4)',
-          tabBarStyle: {
-            position: 'absolute',
-            bottom: 20,
-            left: 25,
-            right: 25,
-            height: 75,
-            backgroundColor: '#1A2A1A',
-            borderTopWidth: 0,
-            borderRadius: 35,
-            paddingBottom: 12,
-            paddingTop: 10,
-            elevation: 10,
-            shadowColor: '#000',
-            shadowOpacity: 0.3,
-            shadowRadius: 15,
-          },
-          tabBarLabelStyle: {
-            fontSize: 10,
-            fontWeight: '900',
-            marginTop: -2,
-          }
-        }}>
-        
-        <Tabs.Screen
-          name="index"
-          options={{
-            title: 'HOME',
-            tabBarIcon: ({ focused }) => (
-              <Ionicons 
-                name={focused ? "home" : "home-outline"} 
-                size={26} 
-                color={focused ? "#D8F36C" : "rgba(255,255,255,0.45)"} 
-              />
-            ),
-          }}
-        />
-
-        <Tabs.Screen
-          name="explore"
-          options={{
-            title: 'EXPLORE',
-            tabBarIcon: ({ focused }) => (
-              <Ionicons 
-                name={focused ? "search" : "search-outline"} 
-                size={26} 
-                color={focused ? "#D8F36C" : "rgba(255,255,255,0.45)"} 
-              />
-            ),
-          }}
-        />
-        
-        <Tabs.Screen
-          name="scan_placeholder"
-          options={{
-            title: 'SCAN',
-            tabBarIcon: ({ focused }) => (
-              <View style={styles.scanWrap}>
-                <LinearGradient colors={['#D8F36C', '#A8E040']} style={styles.scanCircle}>
-                  <Ionicons name="scan" size={28} color="#1A2A1A" />
-                </LinearGradient>
-              </View>
-            ),
-            tabBarButton: (props) => (
-              <TouchableOpacity 
-                {...props} 
-                onPress={() => router.push('/scan')} 
-                style={styles.scanTouchable}
-              />
-            ),
-          }}
-        />
-
-        <Tabs.Screen
-          name="profile"
-          options={{
-            title: 'USER',
-            tabBarIcon: ({ focused }) => (
-              <Ionicons 
-                name={focused ? "person" : "person-outline"} 
-                size={26} 
-                color={focused ? "#D8F36C" : "rgba(255,255,255,0.45)"} 
-              />
-            ),
-          }}
-        />
-
-        {/* Hidden tabs */}
+        tabBar={(props) => <CustomTabBar {...props} />}
+        screenOptions={{ headerShown: false }}
+      >
+        <Tabs.Screen name="index" />
+        <Tabs.Screen name="explore" />
+        <Tabs.Screen name="scan_placeholder" />
+        <Tabs.Screen name="bag_placeholder" />
+        <Tabs.Screen name="profile" />
         <Tabs.Screen name="search" options={{ href: null }} />
         <Tabs.Screen name="orders" options={{ href: null }} />
         <Tabs.Screen name="ar_vr" options={{ href: null }} />
       </Tabs>
 
-      {/* Global Floating Bag */}
+      {/* Floating Checkout Bar */}
       {itemCount > 0 && (
-        <TouchableOpacity 
-          style={styles.floatingBag} 
-          onPress={() => router.push('/tracking')}
+        <TouchableOpacity
+          style={[styles.checkoutBar, { bottom: 72 + insets.bottom }]}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+            router.push('/checkout');
+          }}
           activeOpacity={0.9}
         >
-          <LinearGradient colors={['#00C881', '#009D65']} style={styles.bagGradient}>
-            <Ionicons name="bag-handle" size={24} color="#FFF" />
-            <View style={styles.bagBadge}>
-              <Text style={styles.bagBadgeText}>{itemCount}</Text>
+          <LinearGradient
+            colors={['#00C881', '#00A86B']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.checkoutInner}
+          >
+            <View style={styles.checkoutLeft}>
+              <View style={styles.checkoutBag}>
+                <Ionicons name="bag" size={20} color="#FFF" />
+                <View style={styles.checkoutCount}>
+                  <Text style={styles.checkoutCountText}>{itemCount}</Text>
+                </View>
+              </View>
+              <View>
+                <Text style={styles.checkoutTitle}>{itemCount} Item{itemCount > 1 ? 's' : ''}</Text>
+                <Text style={styles.checkoutSubtitle}>View Bag & Checkout</Text>
+              </View>
+            </View>
+            <View style={styles.checkoutRight}>
+              <Text style={styles.checkoutAction}>Checkout</Text>
+              <Ionicons name="chevron-forward" size={18} color="#FFF" />
             </View>
           </LinearGradient>
         </TouchableOpacity>
@@ -128,88 +155,119 @@ export default function TabLayout() {
     </View>
   );
 }
+
+export default function TabLayout() {
+  return (
+    <TabBarProvider>
+      <TabLayoutInner />
+    </TabBarProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  navBg: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 35,
+  tabBarOuter: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    borderTopWidth: 0.5,
+    borderTopColor: 'rgba(0,0,0,0.1)',
+  },
+  tabBarBlur: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    height: 60,
+    backgroundColor: 'rgba(255,255,255,0.75)',
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
   },
   tabItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 2,
-  },
-  dot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#D8F36C',
-    marginTop: 5,
-  },
-  scanWrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: -20,
-  },
-  scanCircle: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#D8F36C',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  scanTouchable: {
     flex: 1,
+    height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
   },
-  floatingBag: {
+  activeIndicator: {
     position: 'absolute',
-    bottom: 110,
-    right: 20,
-    width: 65,
-    height: 65,
-    borderRadius: 35,
-    overflow: 'visible',
-    shadowColor: '#00C881',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 10,
-    zIndex: 1000,
+    top: 0,
+    width: 48,
+    height: 3,
+    backgroundColor: '#1877F2',
+    borderBottomLeftRadius: 3,
+    borderBottomRightRadius: 3,
   },
-  bagGradient: {
-    flex: 1,
-    borderRadius: 35,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bagBadge: {
+  badgeContainer: {
     position: 'absolute',
-    top: -5,
-    right: -5,
-    backgroundColor: '#FF3B30',
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    top: -4,
+    right: -8,
+    backgroundColor: '#E41E3F',
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
+    paddingHorizontal: 4,
+    borderWidth: 1.5,
     borderColor: '#FFF',
+    zIndex: 10,
   },
-  bagBadgeText: {
+  badgeText: {
     color: '#FFF',
-    fontSize: 12,
+    fontSize: 9,
     fontWeight: 'bold',
   },
+  avatarWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#000000',
+    overflow: 'hidden',
+  },
+  avatarActive: {
+    borderColor: '#1877F2',
+    borderWidth: 2,
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+  },
+  checkoutBar: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+    height: 60,
+    borderRadius: 18,
+    overflow: 'hidden',
+    shadowColor: '#00C881',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 8,
+    zIndex: 1000,
+  },
+  checkoutInner: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+  },
+  checkoutLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  checkoutBag: {
+    width: 36, height: 36, borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  checkoutCount: {
+    position: 'absolute', top: -4, right: -4,
+    backgroundColor: '#FFF', width: 16, height: 16, borderRadius: 8,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  checkoutCountText: { color: '#00C881', fontSize: 9, fontWeight: '900' },
+  checkoutTitle: { color: '#FFF', fontSize: 14, fontWeight: '800' },
+  checkoutSubtitle: { color: 'rgba(255,255,255,0.85)', fontSize: 10, fontWeight: '500' },
+  checkoutRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  checkoutAction: { color: '#FFF', fontSize: 12, fontWeight: '800', textTransform: 'uppercase' },
 });
