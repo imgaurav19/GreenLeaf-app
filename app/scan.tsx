@@ -349,9 +349,9 @@ export default function ScanScreen() {
                 <Ionicons name={isScanning ? "stop" : "scan"} size={30} color={isScanning ? "#FFF" : "#000"} />
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.controlItem}>
-                <MaterialCommunityIcons name="brain" size={26} color="#000" />
-                <Text style={styles.controlLabel}>ML Mode</Text>
+              <TouchableOpacity style={styles.controlItem} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); router.push('/ar_viewer'); }}>
+                <MaterialCommunityIcons name="cube-scan" size={26} color="#00C881" />
+                <Text style={[styles.controlLabel, { color: '#00C881' }]}>AR View</Text>
               </TouchableOpacity>
             </BlurView>
           </View>

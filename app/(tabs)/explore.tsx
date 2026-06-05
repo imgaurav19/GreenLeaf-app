@@ -24,27 +24,27 @@ const CATEGORIES = [
 ];
 
 const PLANT_CARE_ESSENTIALS = [
-  { id: '1', name: 'Neem Oil Spray', price: '₹199', desc: 'Organic pest control', icon: 'spray-bottle' },
-  { id: '2', name: 'NPK 19-19-19', price: '₹129', desc: 'All-purpose fertilizer', icon: 'leaf-circle' },
-  { id: '3', name: 'Pruning Shears', price: '₹299', desc: 'Sharp stainless steel', icon: 'content-cut' },
-  { id: '4', name: 'Potting Mix', price: '₹149', desc: 'Rich organic blend', icon: 'flower-pollen' },
-  { id: '5', name: 'Root Hormone', price: '₹249', desc: 'Fast root growth', icon: 'sprout' },
+  { id: 'care_neem', name: 'Neem Oil Spray', price: '₹199', desc: 'Organic pest control', icon: 'spray-bottle' },
+  { id: 'fert_npk', name: 'NPK 19-19-19', price: '₹129', desc: 'All-purpose fertilizer', icon: 'leaf-circle' },
+  { id: 'tool_shears', name: 'Pruning Shears', price: '₹299', desc: 'Sharp stainless steel', icon: 'content-cut' },
+  { id: 'care_potting', name: 'Potting Mix', price: '₹149', desc: 'Rich organic blend', icon: 'flower-pollen' },
+  { id: 'care_root', name: 'Root Hormone', price: '₹249', desc: 'Fast root growth', icon: 'sprout' },
 ];
 
 const SEASONAL_PICKS = [
-  { id: '1', name: 'Marigold', price: '₹29', season: 'Summer', img: require('@/assets/images/succulent_plant.png') },
-  { id: '2', name: 'Dahlia', price: '₹79', season: 'Monsoon', img: require('@/assets/images/office_plant.png') },
-  { id: '3', name: 'Chrysanthemum', price: '₹99', season: 'Winter', img: require('@/assets/images/fiddle_leaf_fig.png') },
-  { id: '4', name: 'Hibiscus', price: '₹49', season: 'All Year', img: require('@/assets/images/succulent_plant.png') },
+  { id: 'plant_marigold', name: 'Marigold', price: '₹29', season: 'Summer', img: require('@/assets/images/succulent_plant.png') },
+  { id: 'plant_dahlia', name: 'Dahlia', price: '₹79', season: 'Monsoon', img: require('@/assets/images/office_plant.png') },
+  { id: 'plant_chrys', name: 'Chrysanthemum', price: '₹99', season: 'Winter', img: require('@/assets/images/fiddle_leaf_fig.png') },
+  { id: 'plant_hibiscus', name: 'Hibiscus', price: '₹49', season: 'All Year', img: require('@/assets/images/succulent_plant.png') },
 ];
 
 const TRENDING = [
-  { id: '1', name: 'Snake Plant', price: '₹499', rating: '4.8', img: require('@/assets/images/succulent_plant.png') },
-  { id: '2', name: 'Fiddle Leaf', price: '₹1299', rating: '4.9', img: require('@/assets/images/fiddle_leaf_fig.png') },
-  { id: '3', name: 'Peace Lily', price: '₹349', rating: '4.7', img: require('@/assets/images/office_plant.png') },
-  { id: '4', name: 'Aloe Vera', price: '₹199', rating: '4.6', img: require('@/assets/images/succulent_plant.png') },
-  { id: '5', name: 'Money Plant', price: '₹149', rating: '4.5', img: require('@/assets/images/office_plant.png') },
-  { id: '6', name: 'Tulsi', price: '₹49', rating: '5.0', img: require('@/assets/images/succulent_plant.png') },
+  { id: 'plant_snake', name: 'Snake Plant', price: '₹499', rating: '4.8', img: require('@/assets/images/succulent_plant.png') },
+  { id: 'plant_fiddle', name: 'Fiddle Leaf', price: '₹1299', rating: '4.9', img: require('@/assets/images/fiddle_leaf_fig.png') },
+  { id: 'plant_peace', name: 'Peace Lily', price: '₹349', rating: '4.7', img: require('@/assets/images/office_plant.png') },
+  { id: 'plant_aloe', name: 'Aloe Vera', price: '₹199', rating: '4.6', img: require('@/assets/images/succulent_plant.png') },
+  { id: 'plant_money', name: 'Money Plant', price: '₹149', rating: '4.5', img: require('@/assets/images/office_plant.png') },
+  { id: 'plant_tulsi', name: 'Tulsi', price: '₹49', rating: '5.0', img: require('@/assets/images/succulent_plant.png') },
 ];
 
 export default function ExploreScreen() {
@@ -156,7 +156,7 @@ export default function ExploreScreen() {
           </View>
           <View style={styles.plantGrid}>
             {TRENDING.map(plant => (
-              <TouchableOpacity key={plant.id} style={[styles.plantCard, { backgroundColor: cardBg, borderColor }]} onPress={() => router.push('/details')}>
+              <TouchableOpacity key={plant.id} style={[styles.plantCard, { backgroundColor: cardBg, borderColor }]} onPress={() => router.push({ pathname: '/details', params: { id: plant.id } })}>
                 <View style={[styles.imgBox, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,200,129,0.03)' }]}>
                   <Image source={plant.img} style={styles.pImg} resizeMode="contain" />
                   <View style={styles.ratingPill}>

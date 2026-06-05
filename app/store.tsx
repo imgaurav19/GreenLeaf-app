@@ -5,10 +5,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import { useCart } from '@/context/CartContext';
+import * as Haptics from 'expo-haptics';
 
 const { width } = Dimensions.get('window');
 
 export default function StoreScreen() {
+  const { addItem, removeItem, getItemQuantity } = useCart();
+  const qty = getItemQuantity('plant_desk');
+
   return (
     <View style={styles.container}>
       {/* Blurred Background */}
@@ -37,7 +42,13 @@ export default function StoreScreen() {
                     <Text style={styles.carouselTitle}>Desk Plant</Text>
                     <View style={styles.carouselPriceRow}>
                       <Text style={styles.carouselPrice}>₹147.00 <Text style={styles.carouselOld}>₹195</Text></Text>
-                      <TouchableOpacity style={styles.smallCartBtn}>
+                      <TouchableOpacity 
+                        style={styles.smallCartBtn}
+                        onPress={() => {
+                          addItem('plant_desk');
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        }}
+                      >
                         <Ionicons name="cart-outline" size={18} color="#FFF" />
                       </TouchableOpacity>
                     </View>
@@ -64,15 +75,33 @@ export default function StoreScreen() {
                   <Text style={styles.dSubtitle}>240 Reviews</Text>
                 </View>
                 <View style={styles.counter}>
-                  <TouchableOpacity style={styles.countBtn}><Text style={styles.countText}>-</Text></TouchableOpacity>
-                  <Text style={styles.countVal}>2</Text>
-                  <TouchableOpacity style={[styles.countBtn, styles.countBtnActive]}><Text style={styles.countText}>+</Text></TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.countBtn}
+                    onPress={() => {
+                      if (qty > 0) {
+                        removeItem('plant_desk');
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      }
+                    }}
+                  >
+                    <Text style={styles.countText}>-</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.countVal}>{qty}</Text>
+                  <TouchableOpacity 
+                    style={[styles.countBtn, styles.countBtnActive]}
+                    onPress={() => {
+                      addItem('plant_desk');
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    }}
+                  >
+                    <Text style={styles.countText}>+</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
 
               <View style={styles.deliveryRow}>
                 <Text style={styles.deliveryLabel}>Delivery fee</Text>
-                <Text style={styles.deliveryVal}>₹4.00</Text>
+                <Text style={styles.deliveryVal}>₹40.00</Text>
               </View>
             </View>
           </View>
@@ -84,9 +113,15 @@ export default function StoreScreen() {
           <View style={styles.pricePill}>
             <View style={styles.priceInfo}>
               <Text style={styles.totalLabel}>Total Amount</Text>
-              <Text style={styles.totalVal}>₹147.00</Text>
+              <Text style={styles.totalVal}>₹{147.00 * (qty || 1)}</Text>
             </View>
-            <TouchableOpacity style={styles.addToCartBtn}>
+            <TouchableOpacity 
+              style={styles.addToCartBtn}
+              onPress={() => {
+                addItem('plant_desk');
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              }}
+            >
               <Text style={styles.btnText}>Add to Cart</Text>
             </TouchableOpacity>
           </View>

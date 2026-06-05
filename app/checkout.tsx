@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   StyleSheet, View, Text, TouchableOpacity,
-  ScrollView, Dimensions, TextInput,
+  ScrollView, Dimensions, TextInput, Modal, ActivityIndicator, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -9,6 +9,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useCart } from '@/context/CartContext';
 import { useUser } from '@/context/UserContext';
+import { getProductById } from '@/constants/products';
+import LocationPickerModal from '@/components/LocationPickerModal';
+import * as Haptics from 'expo-haptics';
 
 const { width } = Dimensions.get('window');
 
@@ -19,190 +22,391 @@ const PAYMENT_METHODS = [
 ];
 
 export default function CheckoutScreen() {
-  const { itemCount, clearCart } = useCart();
-  const { locationCity, area } = useUser();
+  const { items, itemCount, clearCart } = useCart();
+  const { locationCity, area, isDarkMode } = useUser();
   const [selectedPayment, setSelectedPayment] = useState('cod');
   const [promoCode, setPromoCode] = useState('');
+  
+  // Picker visibility
+  const [pickerVisible, setPickerVisible] = useState(false);
+  
+  // Payment Simulation States
+  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing_upi' | 'card_entry' | 'processing_card' | 'success'>('idle');
+  const [cardNumber, setCardNumber] = useState('');
+  const [expiry, setExpiry] = useState('');
+  const [cvv, setCvv] = useState('');
 
-  const subtotal = itemCount * 299;
-  const deliveryFee = 40;
-  const discount = 0;
+  // Map cart items to product details
+  const cartProducts = items.map(item => {
+    const detail = getProductById(item.id);
+    return {
+      ...item,
+      name: detail?.name || 'Money Plant',
+      price: detail?.price || 299,
+    };
+  });
+
+  const subtotal = cartProducts.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const deliveryFee = subtotal > 0 ? 40 : 0;
+  const discount = promoCode.toUpperCase() === 'GREEN60' ? Math.round(subtotal * 0.6) : 0;
   const total = subtotal + deliveryFee - discount;
 
   const handlePlaceOrder = () => {
+    if (items.length === 0) {
+      Alert.alert('Empty Bag', 'Please add items to your bag before checking out.');
+      return;
+    }
+    
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    if (selectedPayment === 'cod') {
+      // Immediate flow
+      setPaymentStatus('success');
+      setTimeout(() => {
+        proceedToSuccess();
+      }, 1500);
+    } else if (selectedPayment === 'upi') {
+      // UPI Processing simulation
+      setPaymentStatus('processing_upi');
+      setTimeout(() => {
+        setPaymentStatus('success');
+        setTimeout(() => {
+          proceedToSuccess();
+        }, 1200);
+      }, 2500);
+    } else if (selectedPayment === 'card') {
+      // Show card form
+      setPaymentStatus('card_entry');
+    }
+  };
+
+  const handleCardPay = () => {
+    if (cardNumber.length < 16 || expiry.length < 4 || cvv.length < 3) {
+      Alert.alert('Invalid Details', 'Please fill in correct card details (16 digit number, Expiry, and CVV).');
+      return;
+    }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setPaymentStatus('processing_card');
+    setTimeout(() => {
+      setPaymentStatus('success');
+      setTimeout(() => {
+        proceedToSuccess();
+      }, 1200);
+    }, 2000);
+  };
+
+  const proceedToSuccess = () => {
+    setPaymentStatus('idle');
+    
+    // Pass ordered items and calculations as search params
+    const orderedItems = cartProducts.map(p => ({
+      name: p.name,
+      price: p.price,
+      quantity: p.quantity,
+    }));
+
+    const params = {
+      items: JSON.stringify(orderedItems),
+      subtotal,
+      deliveryFee,
+      discount,
+      total,
+    };
+
     clearCart();
-    router.replace('/tracking');
+    
+    router.replace({
+      pathname: '/tracking',
+      params: params,
+    });
   };
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={['#F0F4EF', '#FAFDF7']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={isDarkMode ? ['#121212', '#1E1E1E'] : ['#F0F4EF', '#FAFDF7']} style={StyleSheet.absoluteFill} />
 
       <SafeAreaView style={{ flex: 1 }}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
-            <Ionicons name="chevron-back" size={24} color="#000" />
+          <TouchableOpacity onPress={() => router.back()} style={[styles.headerBtn, { backgroundColor: isDarkMode ? '#222' : '#FFF' }]}>
+            <Ionicons name="chevron-back" size={24} color={isDarkMode ? '#FFF' : '#000'} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Checkout</Text>
+          <Text style={[styles.headerTitle, { color: isDarkMode ? '#FFF' : '#000' }]}>Checkout</Text>
           <View style={{ width: 44 }} />
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 140 }}>
-
-          {/* Delivery Address */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Delivery Address</Text>
-              <TouchableOpacity>
-                <Text style={styles.changeBtn}>Change</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.addressCard}>
-              <View style={styles.addressIcon}>
-                <Ionicons name="location" size={22} color="#00C881" />
-              </View>
-              <View style={styles.addressContent}>
-                <Text style={styles.addressName}>Current Location</Text>
-                <Text style={styles.addressText}>{area}</Text>
-                <Text style={styles.addressText}>{locationCity}</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Order Summary */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Order Summary</Text>
-            <View style={styles.summaryCard}>
-              {/* Item rows */}
-              <View style={styles.itemRow}>
-                <View style={styles.itemInfo}>
-                  <View style={styles.itemQtyBadge}>
-                    <Text style={styles.itemQtyText}>{itemCount}x</Text>
-                  </View>
-                  <Text style={styles.itemName}>Money Plant (Epipremnum)</Text>
-                </View>
-                <Text style={styles.itemPrice}>₹{subtotal}</Text>
-              </View>
-
-              <View style={styles.divider} />
-
-              <View style={styles.feeRow}>
-                <Text style={styles.feeLabel}>Subtotal</Text>
-                <Text style={styles.feeValue}>₹{subtotal}</Text>
-              </View>
-              <View style={styles.feeRow}>
-                <View style={styles.feeWithIcon}>
-                  <MaterialCommunityIcons name="truck-delivery-outline" size={16} color="#666" />
-                  <Text style={styles.feeLabel}>Delivery Fee</Text>
-                </View>
-                <Text style={styles.feeValue}>₹{deliveryFee}</Text>
-              </View>
-              {discount > 0 && (
-                <View style={styles.feeRow}>
-                  <Text style={[styles.feeLabel, { color: '#00C881' }]}>Discount</Text>
-                  <Text style={[styles.feeValue, { color: '#00C881' }]}>-₹{discount}</Text>
-                </View>
-              )}
-
-              <View style={[styles.divider, { marginVertical: 12 }]} />
-
-              <View style={styles.feeRow}>
-                <Text style={styles.totalLabel}>Total</Text>
-                <Text style={styles.totalValue}>₹{total}</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Promo Code */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Promo Code</Text>
-            <View style={styles.promoRow}>
-              <View style={styles.promoInputWrap}>
-                <Ionicons name="pricetag-outline" size={18} color="#999" />
-                <TextInput
-                  placeholder="Enter promo code"
-                  placeholderTextColor="#999"
-                  style={styles.promoInput}
-                  value={promoCode}
-                  onChangeText={setPromoCode}
-                />
-              </View>
-              <TouchableOpacity style={styles.promoApplyBtn}>
-                <Text style={styles.promoApplyText}>Apply</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Payment Method */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Payment Method</Text>
-            {PAYMENT_METHODS.map(method => (
-              <TouchableOpacity
-                key={method.id}
-                style={[
-                  styles.paymentOption,
-                  selectedPayment === method.id && styles.paymentOptionActive,
-                ]}
-                onPress={() => setSelectedPayment(method.id)}
-              >
-                <View style={[
-                  styles.paymentIconBox,
-                  selectedPayment === method.id && styles.paymentIconBoxActive,
-                ]}>
-                  <Ionicons
-                    name={method.icon}
-                    size={22}
-                    color={selectedPayment === method.id ? '#FFF' : '#666'}
-                  />
-                </View>
-                <View style={styles.paymentInfo}>
-                  <Text style={[
-                    styles.paymentLabel,
-                    selectedPayment === method.id && styles.paymentLabelActive,
-                  ]}>{method.label}</Text>
-                  <Text style={styles.paymentSub}>{method.sub}</Text>
-                </View>
-                <View style={[
-                  styles.radio,
-                  selectedPayment === method.id && styles.radioActive,
-                ]}>
-                  {selectedPayment === method.id && <View style={styles.radioInner} />}
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {/* Delivery Time */}
-          <View style={styles.section}>
-            <View style={styles.deliveryTimeCard}>
-              <View style={styles.deliveryTimeIcon}>
-                <MaterialCommunityIcons name="clock-fast" size={24} color="#00C881" />
-              </View>
-              <View>
-                <Text style={styles.deliveryTimeTitle}>Estimated Delivery</Text>
-                <Text style={styles.deliveryTimeValue}>15 – 30 minutes</Text>
-              </View>
-            </View>
-          </View>
-
-        </ScrollView>
-
-        {/* Bottom Place Order Bar */}
-        <View style={styles.bottomBar}>
-          <View style={styles.bottomPill}>
-            <View style={styles.bottomPriceInfo}>
-              <Text style={styles.bottomTotalLabel}>Total</Text>
-              <Text style={styles.bottomTotalValue}>₹{total}</Text>
-            </View>
-            <TouchableOpacity style={styles.placeOrderBtn} onPress={handlePlaceOrder}>
-              <Text style={styles.placeOrderText}>Place Order</Text>
-              <Ionicons name="arrow-forward" size={20} color="#000" />
+        {items.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <MaterialCommunityIcons name="shopping-outline" size={64} color={isDarkMode ? '#555' : '#CCC'} />
+            <Text style={[styles.emptyTitle, { color: isDarkMode ? '#FFF' : '#000' }]}>Your Bag is Empty</Text>
+            <Text style={styles.emptySub}>Add plants and accessories to get started!</Text>
+            <TouchableOpacity style={styles.shopBtn} onPress={() => router.replace('/(tabs)')}>
+              <Text style={styles.shopText}>Go Shop</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        ) : (
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 140 }}>
+
+            {/* Delivery Address */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionTitle, { color: isDarkMode ? '#FFF' : '#1A2A1A' }]}>Delivery Address</Text>
+                <TouchableOpacity onPress={() => setPickerVisible(true)}>
+                  <Text style={styles.changeBtn}>Change</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={[styles.addressCard, { backgroundColor: isDarkMode ? '#1E1E1E' : '#FFF', borderColor: isDarkMode ? 'rgba(0,200,129,0.3)' : 'rgba(0,200,129,0.15)' }]}>
+                <View style={styles.addressIcon}>
+                  <Ionicons name="location" size={22} color="#00C881" />
+                </View>
+                <View style={styles.addressContent}>
+                  <Text style={[styles.addressName, { color: isDarkMode ? '#FFF' : '#000' }]}>{locationCity}</Text>
+                  <Text style={[styles.addressText, { color: isDarkMode ? '#AAA' : '#666' }]}>{area}</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Order Summary */}
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: isDarkMode ? '#FFF' : '#1A2A1A' }]}>Order Summary</Text>
+              <View style={[styles.summaryCard, { backgroundColor: isDarkMode ? '#1E1E1E' : '#FFF' }]}>
+                {/* Item rows */}
+                {cartProducts.map((p, index) => (
+                  <View key={p.id + '-' + index} style={styles.itemRow}>
+                    <View style={styles.itemInfo}>
+                      <View style={styles.itemQtyBadge}>
+                        <Text style={styles.itemQtyText}>{p.quantity}x</Text>
+                      </View>
+                      <Text style={[styles.itemName, { color: isDarkMode ? '#FFF' : '#333' }]} numberOfLines={1}>
+                        {p.name}
+                      </Text>
+                    </View>
+                    <Text style={[styles.itemPrice, { color: isDarkMode ? '#FFF' : '#000' }]}>₹{p.price * p.quantity}</Text>
+                  </View>
+                ))}
+
+                <View style={[styles.divider, { backgroundColor: isDarkMode ? '#333' : '#F0F0F0' }]} />
+
+                <View style={styles.feeRow}>
+                  <Text style={[styles.feeLabel, { color: isDarkMode ? '#AAA' : '#666' }]}>Subtotal</Text>
+                  <Text style={[styles.feeValue, { color: isDarkMode ? '#FFF' : '#333' }]}>₹{subtotal}</Text>
+                </View>
+                <View style={styles.feeRow}>
+                  <View style={styles.feeWithIcon}>
+                    <MaterialCommunityIcons name="truck-delivery-outline" size={16} color={isDarkMode ? '#AAA' : '#666'} />
+                    <Text style={[styles.feeLabel, { color: isDarkMode ? '#AAA' : '#666' }]}>Delivery Fee</Text>
+                  </View>
+                  <Text style={[styles.feeValue, { color: isDarkMode ? '#FFF' : '#333' }]}>₹{deliveryFee}</Text>
+                </View>
+                {discount > 0 && (
+                  <View style={styles.feeRow}>
+                    <Text style={[styles.feeLabel, { color: '#00C881' }]}>Discount (GREEN60)</Text>
+                    <Text style={[styles.feeValue, { color: '#00C881' }]}>-₹{discount}</Text>
+                  </View>
+                )}
+
+                <View style={[styles.divider, { marginVertical: 12, backgroundColor: isDarkMode ? '#333' : '#F0F0F0' }]} />
+
+                <View style={styles.feeRow}>
+                  <Text style={[styles.totalLabel, { color: isDarkMode ? '#FFF' : '#000' }]}>Total</Text>
+                  <Text style={[styles.totalValue, { color: isDarkMode ? '#FFF' : '#000' }]}>₹{total}</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Promo Code */}
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: isDarkMode ? '#FFF' : '#1A2A1A' }]}>Promo Code</Text>
+              <View style={styles.promoRow}>
+                <View style={[styles.promoInputWrap, { backgroundColor: isDarkMode ? '#1E1E1E' : '#FFF', borderColor: isDarkMode ? '#333' : '#EEE' }]}>
+                  <Ionicons name="pricetag-outline" size={18} color="#999" />
+                  <TextInput
+                    placeholder="Enter promo code (e.g. GREEN60)"
+                    placeholderTextColor="#999"
+                    style={[styles.promoInput, { color: isDarkMode ? '#FFF' : '#000' }]}
+                    value={promoCode}
+                    onChangeText={setPromoCode}
+                    autoCapitalize="characters"
+                  />
+                </View>
+                <TouchableOpacity style={styles.promoApplyBtn} onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  if (promoCode.toUpperCase() === 'GREEN60') {
+                    Alert.alert('Promo Applied', '60% discount code successfully applied!');
+                  } else {
+                    Alert.alert('Invalid Code', 'Try GREEN60 to get a promo discount.');
+                  }
+                }}>
+                  <Text style={styles.promoApplyText}>Apply</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Payment Method */}
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: isDarkMode ? '#FFF' : '#1A2A1A' }]}>Payment Method</Text>
+              {PAYMENT_METHODS.map(method => (
+                <TouchableOpacity
+                  key={method.id}
+                  style={[
+                    styles.paymentOption,
+                    { backgroundColor: isDarkMode ? '#1E1E1E' : '#FFF', borderColor: isDarkMode ? '#333' : '#F0F0F0' },
+                    selectedPayment === method.id && styles.paymentOptionActive,
+                  ]}
+                  onPress={() => setSelectedPayment(method.id)}
+                >
+                  <View style={[
+                    styles.paymentIconBox,
+                    selectedPayment === method.id && styles.paymentIconBoxActive,
+                  ]}>
+                    <Ionicons
+                      name={method.icon}
+                      size={22}
+                      color={selectedPayment === method.id ? '#FFF' : (isDarkMode ? '#FFF' : '#666')}
+                    />
+                  </View>
+                  <View style={styles.paymentInfo}>
+                    <Text style={[
+                      styles.paymentLabel,
+                      { color: isDarkMode ? '#FFF' : '#333' },
+                      selectedPayment === method.id && styles.paymentLabelActive,
+                    ]}>{method.label}</Text>
+                    <Text style={styles.paymentSub}>{method.sub}</Text>
+                  </View>
+                  <View style={[
+                    styles.radio,
+                    selectedPayment === method.id && styles.radioActive,
+                  ]}>
+                    {selectedPayment === method.id && <View style={styles.radioInner} />}
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Delivery Time */}
+            <View style={styles.section}>
+              <View style={[styles.deliveryTimeCard, { backgroundColor: isDarkMode ? 'rgba(0,200,129,0.15)' : 'rgba(0,200,129,0.08)', borderColor: isDarkMode ? 'rgba(0,200,129,0.3)' : 'rgba(0,200,129,0.15)' }]}>
+                <View style={styles.deliveryTimeIcon}>
+                  <MaterialCommunityIcons name="clock-fast" size={24} color="#00C881" />
+                </View>
+                <View>
+                  <Text style={[styles.deliveryTimeTitle, { color: isDarkMode ? '#AAA' : '#666' }]}>Estimated Delivery</Text>
+                  <Text style={[styles.deliveryTimeValue, { color: isDarkMode ? '#FFF' : '#1A2A1A' }]}>15 – 30 minutes</Text>
+                </View>
+              </View>
+            </View>
+
+          </ScrollView>
+        )}
+
+        {/* Bottom Place Order Bar */}
+        {items.length > 0 && (
+          <View style={styles.bottomBar}>
+            <View style={styles.bottomPill}>
+              <View style={styles.bottomPriceInfo}>
+                <Text style={styles.bottomTotalLabel}>Total</Text>
+                <Text style={styles.bottomTotalValue}>₹{total}</Text>
+              </View>
+              <TouchableOpacity style={styles.placeOrderBtn} onPress={handlePlaceOrder}>
+                <Text style={styles.placeOrderText}>Place Order</Text>
+                <Ionicons name="arrow-forward" size={20} color="#000" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
 
       </SafeAreaView>
+
+      {/* Location Picker Bottom Sheet */}
+      <LocationPickerModal visible={pickerVisible} onClose={() => setPickerVisible(false)} />
+
+      {/* Simulated Payments Overlays */}
+      <Modal
+        visible={paymentStatus !== 'idle'}
+        transparent
+        animationType="fade"
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { backgroundColor: isDarkMode ? '#1E1E1E' : '#FFF' }]}>
+            
+            {/* 1. UPI Loading Screen */}
+            {paymentStatus === 'processing_upi' && (
+              <View style={styles.modalContent}>
+                <ActivityIndicator size="large" color="#00C881" />
+                <Text style={[styles.modalTitle, { color: isDarkMode ? '#FFF' : '#000' }]}>Simulating UPI Payment</Text>
+                <Text style={styles.modalText}>Requesting response from your mobile banking app (GPay / PhonePe)...</Text>
+              </View>
+            )}
+
+            {/* 2. Card Form Screen */}
+            {paymentStatus === 'card_entry' && (
+              <View style={styles.modalContent}>
+                <Ionicons name="card" size={44} color="#00C881" />
+                <Text style={[styles.modalTitle, { color: isDarkMode ? '#FFF' : '#000' }]}>Enter Card Details</Text>
+                
+                <TextInput
+                  placeholder="Card Number (16 Digits)"
+                  placeholderTextColor="#999"
+                  style={[styles.modalInput, { color: isDarkMode ? '#FFF' : '#000', borderColor: isDarkMode ? '#333' : '#DDD' }]}
+                  keyboardType="numeric"
+                  maxLength={16}
+                  value={cardNumber}
+                  onChangeText={setCardNumber}
+                />
+                <View style={styles.row}>
+                  <TextInput
+                    placeholder="Expiry MM/YY"
+                    placeholderTextColor="#999"
+                    style={[styles.modalInput, { flex: 1, color: isDarkMode ? '#FFF' : '#000', borderColor: isDarkMode ? '#333' : '#DDD' }]}
+                    maxLength={5}
+                    value={expiry}
+                    onChangeText={setExpiry}
+                  />
+                  <TextInput
+                    placeholder="CVV"
+                    placeholderTextColor="#999"
+                    style={[styles.modalInput, { flex: 1, color: isDarkMode ? '#FFF' : '#000', borderColor: isDarkMode ? '#333' : '#DDD' }]}
+                    keyboardType="numeric"
+                    maxLength={3}
+                    secureTextEntry
+                    value={cvv}
+                    onChangeText={setCvv}
+                  />
+                </View>
+
+                <TouchableOpacity style={styles.payBtn} onPress={handleCardPay}>
+                  <Text style={styles.payBtnText}>Pay ₹{total}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.cancelLink} onPress={() => setPaymentStatus('idle')}>
+                  <Text style={styles.cancelText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* 3. Card Loading Screen */}
+            {paymentStatus === 'processing_card' && (
+              <View style={styles.modalContent}>
+                <ActivityIndicator size="large" color="#00C881" />
+                <Text style={[styles.modalTitle, { color: isDarkMode ? '#FFF' : '#000' }]}>Authorizing Card...</Text>
+                <Text style={styles.modalText}>Connecting with payment gateways securely...</Text>
+              </View>
+            )}
+
+            {/* 4. Payment Success Check */}
+            {paymentStatus === 'success' && (
+              <View style={styles.modalContent}>
+                <View style={styles.successIconCircle}>
+                  <Ionicons name="checkmark" size={48} color="#FFF" />
+                </View>
+                <Text style={[styles.modalTitle, { color: '#00C881' }]}>Order Placed Successfully!</Text>
+                <Text style={styles.modalText}>Your payment was successful and your plants are being dispatched.</Text>
+              </View>
+            )}
+
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -223,7 +427,6 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#FFF',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -233,7 +436,38 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '900',
-    color: '#000',
+  },
+
+  // Empty Cart
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 30,
+    paddingTop: 80,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginTop: 20,
+    marginBottom: 8,
+  },
+  emptySub: {
+    fontSize: 14,
+    color: '#888',
+    textAlign: 'center',
+    marginBottom: 30,
+  },
+  shopBtn: {
+    backgroundColor: '#00C881',
+    paddingHorizontal: 40,
+    paddingVertical: 14,
+    borderRadius: 25,
+  },
+  shopText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 
   // Sections
@@ -250,7 +484,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#1A2A1A',
     marginBottom: 12,
   },
   changeBtn: {
@@ -263,7 +496,6 @@ const styles = StyleSheet.create({
   // Address
   addressCard: {
     flexDirection: 'row',
-    backgroundColor: '#FFF',
     borderRadius: 20,
     padding: 18,
     alignItems: 'center',
@@ -273,7 +505,6 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
     borderWidth: 1,
-    borderColor: 'rgba(0,200,129,0.15)',
   },
   addressIcon: {
     width: 48,
@@ -289,18 +520,15 @@ const styles = StyleSheet.create({
   addressName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#000',
     marginBottom: 4,
   },
   addressText: {
     fontSize: 13,
-    color: '#666',
     lineHeight: 18,
   },
 
   // Order Summary
   summaryCard: {
-    backgroundColor: '#FFF',
     borderRadius: 20,
     padding: 20,
     shadowColor: '#000',
@@ -312,6 +540,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 12,
   },
   itemInfo: {
     flexDirection: 'row',
@@ -333,17 +562,14 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#333',
     flex: 1,
   },
   itemPrice: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#000',
   },
   divider: {
     height: 1,
-    backgroundColor: '#F0F0F0',
     marginVertical: 14,
   },
   feeRow: {
@@ -358,22 +584,18 @@ const styles = StyleSheet.create({
   },
   feeLabel: {
     fontSize: 14,
-    color: '#666',
   },
   feeValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
   },
   totalLabel: {
     fontSize: 16,
     fontWeight: '900',
-    color: '#000',
   },
   totalValue: {
     fontSize: 18,
     fontWeight: '900',
-    color: '#000',
   },
 
   // Promo
@@ -385,18 +607,16 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF',
     borderRadius: 16,
     paddingHorizontal: 16,
     gap: 10,
     borderWidth: 1,
-    borderColor: '#EEE',
   },
   promoInput: {
     flex: 1,
     paddingVertical: 14,
-    fontSize: 15,
-    color: '#000',
+    fontSize: 14,
+    fontWeight: '600',
   },
   promoApplyBtn: {
     backgroundColor: '#1A2A1A',
@@ -414,13 +634,11 @@ const styles = StyleSheet.create({
   paymentOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF',
     borderRadius: 18,
     padding: 16,
     marginBottom: 10,
     gap: 14,
     borderWidth: 1.5,
-    borderColor: '#F0F0F0',
   },
   paymentOptionActive: {
     borderColor: '#00C881',
@@ -443,10 +661,9 @@ const styles = StyleSheet.create({
   paymentLabel: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#333',
   },
   paymentLabelActive: {
-    color: '#000',
+    fontWeight: '900',
   },
   paymentSub: {
     fontSize: 12,
@@ -476,12 +693,10 @@ const styles = StyleSheet.create({
   deliveryTimeCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,200,129,0.08)',
     borderRadius: 18,
     padding: 18,
     gap: 14,
     borderWidth: 1,
-    borderColor: 'rgba(0,200,129,0.15)',
   },
   deliveryTimeIcon: {
     width: 48,
@@ -493,12 +708,10 @@ const styles = StyleSheet.create({
   },
   deliveryTimeTitle: {
     fontSize: 13,
-    color: '#666',
   },
   deliveryTimeValue: {
     fontSize: 17,
     fontWeight: 'bold',
-    color: '#1A2A1A',
     marginTop: 2,
   },
 
@@ -546,5 +759,96 @@ const styles = StyleSheet.create({
     color: '#000',
     fontWeight: '900',
     fontSize: 16,
+  },
+
+  // Simulated Payments UI
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalCard: {
+    width: '100%',
+    borderRadius: 28,
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 15,
+    elevation: 10,
+  },
+  modalContent: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    marginTop: 18,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  modalText: {
+    fontSize: 13,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 10,
+  },
+  modalInput: {
+    width: '100%',
+    height: 50,
+    borderWidth: 1.5,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+    marginBottom: 18,
+  },
+  payBtn: {
+    width: '100%',
+    height: 52,
+    backgroundColor: '#00C881',
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#00C881',
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  payBtnText: {
+    color: '#FFF',
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  cancelLink: {
+    marginTop: 15,
+    padding: 5,
+  },
+  cancelText: {
+    color: '#999',
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  successIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#00C881',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#00C881',
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
   },
 });

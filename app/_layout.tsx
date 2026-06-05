@@ -37,12 +37,15 @@ export default function RootLayout() {
           <Stack.Screen name="login" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="scan" options={{ presentation: 'fullScreenModal', headerShown: false }} />
+          <Stack.Screen name="ar_viewer" options={{ presentation: 'fullScreenModal', headerShown: false }} />
           <Stack.Screen name="subscription" options={{ presentation: 'fullScreenModal', headerShown: false }} />
           <Stack.Screen name="details" options={{ presentation: 'modal', headerShown: false }} />
           <Stack.Screen name="therapy" options={{ presentation: 'fullScreenModal', headerShown: false }} />
           <Stack.Screen name="checkout" options={{ headerShown: false }} />
           <Stack.Screen name="tracking" options={{ headerShown: false }} />
           <Stack.Screen name="store" options={{ headerShown: false }} />
+          <Stack.Screen name="offer" options={{ headerShown: false }} />
+          <Stack.Screen name="room" options={{ headerShown: false }} />
           <Stack.Screen name="stacked" options={{ headerShown: false }} />
           <Stack.Screen name="orders" options={{ headerShown: false }} />
         </Stack>

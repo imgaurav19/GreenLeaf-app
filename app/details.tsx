@@ -4,21 +4,27 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useCart } from '@/context/CartContext';
+import { getProductById } from '@/constants/products';
 
 const { width } = Dimensions.get('window');
 
 export default function DetailsScreen() {
   const [quantity, setQuantity] = useState(1);
   const params = useLocalSearchParams();
+  const { addItem } = useCart();
 
-  // Mock data matching the screenshot style with Indian theme
+  const productId = (params.id as string) || 'plant_money';
+  const productData = getProductById(productId);
+
   const plant = {
-    name: params.name || 'Money Plant (Epipremnum)',
-    price: 299,
-    oldPrice: 499,
-    rating: '4.8',
+    id: productId,
+    name: productData?.name || 'Money Plant (Epipremnum)',
+    price: productData?.price || 299,
+    oldPrice: productData?.oldPrice || Math.round((productData?.price || 299) * 1.5),
+    rating: productData?.rating || '4.8',
     reviews: '2.4k',
-    img: require('@/assets/images/office_plant.png'),
+    img: productData?.img || require('@/assets/images/office_plant.png'),
     waterDeficiency: 47,
     lightDeficiency: 81,
   };
@@ -118,7 +124,15 @@ export default function DetailsScreen() {
             <Text style={styles.totalLabel}>Total Amount</Text>
             <Text style={styles.totalPrice}>₹{plant.price * quantity}</Text>
           </View>
-          <TouchableOpacity style={styles.addCartBtn} onPress={() => router.push('/checkout')}>
+          <TouchableOpacity 
+            style={styles.addCartBtn} 
+            onPress={() => {
+              for (let i = 0; i < quantity; i++) {
+                addItem(plant.id);
+              }
+              router.push('/checkout');
+            }}
+          >
             <Text style={styles.addCartText}>Order (Cash on Delivery)</Text>
           </TouchableOpacity>
         </View>

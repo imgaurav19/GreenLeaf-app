@@ -12,7 +12,10 @@ import * as Haptics from 'expo-haptics';
 import * as Location from 'expo-location';
 
 import { useCart } from '@/context/CartContext';
+import { useTabBar } from '@/context/TabBarContext';
 import { useUser } from '@/context/UserContext';
+import LocationPickerModal from '@/components/LocationPickerModal';
+import { getProductById } from '@/constants/products';
 
 const { width } = Dimensions.get('window');
 const BANNER_GAP = 12;
@@ -29,41 +32,44 @@ const PROMO_BANNERS = [
 ];
 
 const FAST_PLANTS = [
-  { id: '1', name: 'Tulsi (Holy Basil)', price: '₹49', time: '12 MINS', rating: '4.9', img: require('@/assets/images/succulent_plant.png') },
-  { id: '2', name: 'Money Plant', price: '₹149', time: '15 MINS', rating: '4.8', img: require('@/assets/images/office_plant.png') },
-  { id: '3', name: 'Aloe Vera', price: '₹99', time: '10 MINS', rating: '4.9', img: require('@/assets/images/succulent_plant.png') },
-  { id: '4', name: 'Ashwagandha', price: '₹199', time: '18 MINS', rating: '4.7', img: require('@/assets/images/fiddle_leaf_fig.png') },
-  { id: '5', name: 'Peace Lily', price: '₹299', time: '20 MINS', rating: '4.6', img: require('@/assets/images/office_plant.png') },
-  { id: '6', name: 'Snake Plant', price: '₹349', time: '12 MINS', rating: '4.8', img: require('@/assets/images/succulent_plant.png') },
-  { id: '7', name: 'Curry Leaf', price: '₹79', time: '10 MINS', rating: '4.4', img: require('@/assets/images/office_plant.png') },
-  { id: '8', name: 'Jasmine (Mogra)', price: '₹129', time: '25 MINS', rating: '4.7', img: require('@/assets/images/fiddle_leaf_fig.png') },
+  { id: 'plant_tulsi', name: 'Tulsi (Holy Basil)', price: '₹49', time: '12 MINS', rating: '4.9', img: require('@/assets/images/succulent_plant.png') },
+  { id: 'plant_money', name: 'Money Plant', price: '₹149', time: '15 MINS', rating: '4.8', img: require('@/assets/images/office_plant.png') },
+  { id: 'plant_aloe', name: 'Aloe Vera', price: '₹99', time: '10 MINS', rating: '4.9', img: require('@/assets/images/succulent_plant.png') },
+  { id: 'plant_ashwa', name: 'Ashwagandha', price: '₹199', time: '18 MINS', rating: '4.7', img: require('@/assets/images/fiddle_leaf_fig.png') },
+  { id: 'plant_peace', name: 'Peace Lily', price: '₹299', time: '20 MINS', rating: '4.6', img: require('@/assets/images/office_plant.png') },
+  { id: 'plant_snake', name: 'Snake Plant', price: '₹349', time: '12 MINS', rating: '4.8', img: require('@/assets/images/succulent_plant.png') },
+  { id: 'plant_curry', name: 'Curry Leaf', price: '₹79', time: '10 MINS', rating: '4.4', img: require('@/assets/images/office_plant.png') },
+  { id: 'plant_jasmine', name: 'Jasmine (Mogra)', price: '₹129', time: '25 MINS', rating: '4.7', img: require('@/assets/images/fiddle_leaf_fig.png') },
 ];
 
 const TOOLS_DATA = [
-  { id: '1', name: 'Pruning Shears', price: '₹299', img: require('@/assets/images/succulent_plant.png') },
-  { id: '2', name: 'Garden Gloves', price: '₹149', img: require('@/assets/images/office_plant.png') },
-  { id: '3', name: 'Watering Can', price: '₹399', img: require('@/assets/images/fiddle_leaf_fig.png') },
-  { id: '4', name: 'Spray Bottle', price: '₹99', img: require('@/assets/images/succulent_plant.png') },
+  { id: 'tool_shears', name: 'Pruning Shears', price: '₹299', img: require('@/assets/images/succulent_plant.png') },
+  { id: 'tool_gloves', name: 'Garden Gloves', price: '₹149', img: require('@/assets/images/office_plant.png') },
+  { id: 'tool_can', name: 'Watering Can', price: '₹399', img: require('@/assets/images/fiddle_leaf_fig.png') },
+  { id: 'tool_bottle', name: 'Spray Bottle', price: '₹99', img: require('@/assets/images/succulent_plant.png') },
 ];
 
 const PESTICIDES_DATA = [
-  { id: '1', name: 'Neem Oil Spray', price: '₹199', tag: 'Organic' },
-  { id: '2', name: 'Fungicide Mix', price: '₹249', tag: 'Anti-Fungal' },
-  { id: '3', name: 'Insect Killer', price: '₹179', tag: 'Safe' },
-  { id: '4', name: 'Root Booster', price: '₹349', tag: 'Growth' },
+  { id: 'care_neem', name: 'Neem Oil Spray', price: '₹199', tag: 'Organic' },
+  { id: 'care_fungi', name: 'Fungicide Mix', price: '₹249', tag: 'Anti-Fungal' },
+  { id: 'care_insect', name: 'Insect Killer', price: '₹179', tag: 'Safe' },
+  { id: 'care_root', name: 'Root Booster', price: '₹349', tag: 'Growth' },
 ];
 
 const FERTILIZERS = [
-  { id: '1', name: 'NPK 19-19-19', price: '₹129', desc: 'All-purpose' },
-  { id: '2', name: 'Vermicompost', price: '₹199', desc: 'Organic' },
-  { id: '3', name: 'Bone Meal', price: '₹149', desc: 'Phosphorus' },
-  { id: '4', name: 'Seaweed Extract', price: '₹249', desc: 'Micro-nutrients' },
+  { id: 'fert_npk', name: 'NPK 19-19-19', price: '₹129', desc: 'All-purpose' },
+  { id: 'fert_vermi', name: 'Vermicompost', price: '₹199', desc: 'Organic' },
+  { id: 'fert_bone', name: 'Bone Meal', price: '₹149', desc: 'Phosphorus' },
+  { id: 'fert_seaweed', name: 'Seaweed Extract', price: '₹249', desc: 'Micro-nutrients' },
 ];
 
 export default function HomeScreen() {
   const { addItem, removeItem, getItemQuantity, itemCount } = useCart();
+  const { handleScroll } = useTabBar();
   const { userName, avatar, locationCity, setLocationCity, area, setArea, isDarkMode } = useUser();
-  const [activeRoom, setActiveRoom] = useState('Living Room');
+  const [activeRoom, setActiveRoom] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [locationPickerVisible, setLocationPickerVisible] = useState(false);
   const insets = useSafeAreaInsets();
 
   const bgColor = isDarkMode ? '#121212' : '#F5F9F6';
@@ -74,10 +80,7 @@ export default function HomeScreen() {
 
   const handleLocationPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    // Simulate manual location picker
-    const cities = ['Kolkata', 'Mumbai', 'Delhi', 'Pune', 'Hyderabad'];
-    const randomCity = cities[Math.floor(Math.random() * cities.length)];
-    setLocationCity(randomCity);
+    setLocationPickerVisible(true);
   };
 
   // Auto-swipe carousel
@@ -94,8 +97,6 @@ export default function HomeScreen() {
     return () => clearInterval(timer);
   }, []);
 
-
-
   const handleScrollEnd = (e: any) => {
     const index = Math.round(e.nativeEvent.contentOffset.x / (BANNER_WIDTH + BANNER_GAP));
     currentIndex.current = index;
@@ -104,7 +105,17 @@ export default function HomeScreen() {
 
   // Premium carousel banner with image overlay
   const renderBanner = ({ item }: { item: typeof PROMO_BANNERS[0] }) => (
-    <View style={styles.bannerSlide}>
+    <TouchableOpacity 
+      style={styles.bannerSlide}
+      activeOpacity={0.95}
+      onPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        router.push({
+          pathname: '/subscription',
+          params: { plan: item.code === 'PLANTBOX' ? 'box' : 'pro' }
+        });
+      }}
+    >
       <Image source={item.bg} style={styles.bannerBgImg} resizeMode="cover" />
       <LinearGradient colors={['rgba(0,0,0,0.15)', 'rgba(0,0,0,0.75)']} style={styles.bannerOverlay}>
         <View style={styles.bannerContent}>
@@ -121,7 +132,7 @@ export default function HomeScreen() {
           ))}
         </View>
       </LinearGradient>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -129,7 +140,7 @@ export default function HomeScreen() {
       <StatusBar style={isDarkMode ? "light" : "dark"} />
       <View style={{ height: insets.top, backgroundColor: isDarkMode ? '#1A1A1A' : '#1A2A1A' }} />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 150 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 150 }} onScroll={handleScroll} scrollEventThrottle={16}>
 
         {/* New Personalized Header */}
         <View style={styles.header}>
@@ -168,7 +179,9 @@ export default function HomeScreen() {
             <TextInput 
               style={[styles.searchInputNew, { color: textColor }]} 
               placeholder="Search Plants" 
-              placeholderTextColor={isDarkMode ? '#999' : '#666'} 
+              placeholderTextColor={isDarkMode ? '#999' : '#666'}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
             />
           </View>
           <TouchableOpacity style={[styles.filterBtn, { backgroundColor: cardBg, borderColor }]} onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}>
@@ -179,6 +192,7 @@ export default function HomeScreen() {
         {/* Room Selectors */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.roomScroll}>
           {[
+            { name: 'All', icon: 'grid' },
             { name: 'Living Room', icon: 'leaf' },
             { name: 'Bedroom', icon: 'bed' },
             { name: 'Library', icon: 'book' },
@@ -192,7 +206,11 @@ export default function HomeScreen() {
                 activeRoom === room.name && styles.roomPillActive
               ]}
               onPress={() => {
-                setActiveRoom(room.name);
+                if (room.name === 'All') {
+                  setActiveRoom(room.name);
+                } else {
+                  router.push({ pathname: '/room', params: { room: room.name } });
+                }
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               }}
             >
@@ -291,13 +309,18 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
-          {FAST_PLANTS.map(plant => {
+          {FAST_PLANTS.filter(plant => {
+            if (searchQuery && !plant.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+            if (activeRoom === 'All') return true;
+            const pData = getProductById(plant.id);
+            return pData?.rooms?.includes(activeRoom);
+          }).map(plant => {
             const qty = getItemQuantity(plant.id);
             return (
               <TouchableOpacity 
                 key={plant.id} 
                 style={styles.roomPlantCard} 
-                onPress={() => router.push('/details')}
+                onPress={() => router.push({ pathname: '/details', params: { id: plant.id } })}
               >
                 <Image source={plant.img} style={styles.roomPlantImg} resizeMode="cover" />
                 <LinearGradient 
@@ -412,10 +435,15 @@ export default function HomeScreen() {
           <TouchableOpacity><Text style={styles.seeAll}>See All</Text></TouchableOpacity>
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingLeft: 20, gap: 14, paddingRight: 20, marginBottom: 24 }}>
-          {FAST_PLANTS.slice(0, 4).map(plant => (
+          {FAST_PLANTS.filter(plant => {
+            if (searchQuery && !plant.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+            if (activeRoom === 'All') return true;
+            const pData = getProductById(plant.id);
+            return pData?.rooms?.includes(activeRoom);
+          }).slice(0, 4).map(plant => (
             <TouchableOpacity
               key={plant.id}
-              onPress={() => router.push('/details')}
+              onPress={() => router.push({ pathname: '/details', params: { id: plant.id } })}
               style={[styles.heroCard, { backgroundColor: isDarkMode ? '#1E1E1E' : '#E8F5E9' }]}
               activeOpacity={0.9}
             >
@@ -457,10 +485,15 @@ export default function HomeScreen() {
           <TouchableOpacity><Text style={styles.seeAll}>Sort By</Text></TouchableOpacity>
         </View>
         <View style={styles.grid}>
-          {FAST_PLANTS.map(plant => (
+          {FAST_PLANTS.filter(plant => {
+            if (searchQuery && !plant.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+            if (activeRoom === 'All') return true;
+            const pData = getProductById(plant.id);
+            return pData?.rooms?.includes(activeRoom);
+          }).map(plant => (
             <TouchableOpacity
               key={plant.id}
-              onPress={() => router.push('/details')}
+              onPress={() => router.push({ pathname: '/details', params: { id: plant.id } })}
               style={[styles.plantCard, { backgroundColor: cardBg, borderColor }]}
               activeOpacity={0.9}
             >
@@ -494,6 +527,10 @@ export default function HomeScreen() {
           ))}
         </View>
       </ScrollView>
+      <LocationPickerModal 
+        visible={locationPickerVisible} 
+        onClose={() => setLocationPickerVisible(false)} 
+      />
     </View>
   );
 }

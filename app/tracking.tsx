@@ -1,34 +1,67 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Dimensions } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import * as Haptics from 'expo-haptics';
 import { useUser } from '@/context/UserContext';
 
 const { width, height } = Dimensions.get('window');
 
-// Bangalore coordinates for demo
-const NURSERY = { latitude: 12.9352, longitude: 77.6245 };
-const HOME_LOC = { latitude: 12.9716, longitude: 77.5946 };
-const BIKER = { latitude: 12.9534, longitude: 77.6095 };
-
-const ROUTE_COORDS = [
-  NURSERY,
-  { latitude: 12.9400, longitude: 77.6200 },
-  { latitude: 12.9450, longitude: 77.6150 },
-  BIKER,
-  { latitude: 12.9580, longitude: 77.6050 },
-  { latitude: 12.9650, longitude: 77.5980 },
-  HOME_LOC,
-];
-
 export default function TrackingScreen() {
-  const { locationCity } = useUser();
+  const { locationCity, coords } = useUser();
+  const params = useLocalSearchParams();
   const [minutes, setMinutes] = useState(15);
   const [status, setStatus] = useState<'dispatched' | 'picking' | 'delivering'>('dispatched');
-  const [bikerPos, setBikerPos] = useState(BIKER);
+
+  // Parse ordered items and price calculations
+  const subtotal = Number(params.subtotal) || 299;
+  const deliveryFee = Number(params.deliveryFee) || 40;
+  const discount = Number(params.discount) || 0;
+  const total = Number(params.total) || 339;
+
+  let orderedItems: any[] = [];
+  try {
+    if (params.items) {
+      orderedItems = JSON.parse(params.items as string);
+    }
+  } catch (e) {
+    console.warn('Error parsing items', e);
+  }
+
+  // Fallback if empty
+  if (orderedItems.length === 0) {
+    orderedItems = [{ name: 'Money Plant (Epipremnum)', price: 299, quantity: 1 }];
+  }
+
+  // Dynamic coordinates based on current UserContext coords
+  const HOME_LOC = {
+    latitude: coords?.latitude || 22.5726,
+    longitude: coords?.longitude || 88.3639
+  };
+  
+  const NURSERY = {
+    latitude: HOME_LOC.latitude - 0.012,
+    longitude: HOME_LOC.longitude + 0.015
+  };
+  
+  const BIKER_START = {
+    latitude: HOME_LOC.latitude - 0.006,
+    longitude: HOME_LOC.longitude + 0.007
+  };
+
+  const ROUTE_COORDS = [
+    NURSERY,
+    { latitude: HOME_LOC.latitude - 0.010, longitude: HOME_LOC.longitude + 0.013 },
+    { latitude: HOME_LOC.latitude - 0.008, longitude: HOME_LOC.longitude + 0.010 },
+    BIKER_START,
+    { latitude: HOME_LOC.latitude - 0.004, longitude: HOME_LOC.longitude + 0.005 },
+    { latitude: HOME_LOC.latitude - 0.002, longitude: HOME_LOC.longitude + 0.002 },
+    HOME_LOC,
+  ];
+
+  const [bikerPos, setBikerPos] = useState(BIKER_START);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -56,14 +89,14 @@ export default function TrackingScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Real Map */}
+      {/* Real Map centered on dynamic location */}
       <MapView
         style={styles.map}
         initialRegion={{
-          latitude: 12.9534,
-          longitude: 77.6095,
-          latitudeDelta: 0.06,
-          longitudeDelta: 0.06,
+          latitude: HOME_LOC.latitude,
+          longitude: HOME_LOC.longitude,
+          latitudeDelta: 0.04,
+          longitudeDelta: 0.04,
         }}
         showsUserLocation
         showsMyLocationButton={false}
@@ -153,21 +186,35 @@ export default function TrackingScreen() {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.orderSummary}>
-          <Text style={styles.summaryTitle}>Order Summary</Text>
-          <View style={styles.itemRow}>
-            <Text style={styles.itemName}>1x Money Plant (Epipremnum)</Text>
-            <Text style={styles.itemPrice}>₹299</Text>
+        <ScrollView showsVerticalScrollIndicator={false} style={styles.orderSummaryScroll}>
+          <View style={styles.orderSummary}>
+            <Text style={styles.summaryTitle}>Order Summary</Text>
+            
+            {orderedItems.map((item, index) => (
+              <View key={item.name + '-' + index} style={styles.itemRow}>
+                <Text style={styles.itemName}>{item.quantity}x {item.name}</Text>
+                <Text style={styles.itemPrice}>₹{item.price * item.quantity}</Text>
+              </View>
+            ))}
+
+            <View style={styles.itemRow}>
+              <Text style={styles.itemName}>Delivery Fee</Text>
+              <Text style={styles.itemPrice}>₹{deliveryFee}</Text>
+            </View>
+
+            {discount > 0 && (
+              <View style={styles.itemRow}>
+                <Text style={[styles.itemName, { color: '#00C881' }]}>Discount</Text>
+                <Text style={[styles.itemPrice, { color: '#00C881' }]}>-₹{discount}</Text>
+              </View>
+            )}
+
+            <View style={[styles.itemRow, { borderTopWidth: 1, borderTopColor: '#F0F0F0', paddingTop: 8, marginTop: 8 }]}>
+              <Text style={[styles.itemName, { fontWeight: '900', color: '#000' }]}>Total</Text>
+              <Text style={[styles.itemPrice, { fontWeight: '900', fontSize: 18 }]}>₹{total}</Text>
+            </View>
           </View>
-          <View style={styles.itemRow}>
-            <Text style={styles.itemName}>Delivery Fee</Text>
-            <Text style={styles.itemPrice}>₹40</Text>
-          </View>
-          <View style={[styles.itemRow, { borderTopWidth: 1, borderTopColor: '#F0F0F0', paddingTop: 8, marginTop: 8 }]}>
-            <Text style={[styles.itemName, { fontWeight: '900', color: '#000' }]}>Total</Text>
-            <Text style={[styles.itemPrice, { fontWeight: '900', fontSize: 18 }]}>₹339</Text>
-          </View>
-        </View>
+        </ScrollView>
       </View>
     </View>
   );
@@ -273,6 +320,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.12,
     shadowRadius: 15,
     elevation: 10,
+    maxHeight: '52%',
   },
   handle: {
     width: 40,
@@ -317,6 +365,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,200,129,0.03)',
   },
   actionText: { fontWeight: '700', color: '#00C881', fontSize: 13 },
+  orderSummaryScroll: {
+    maxHeight: 120,
+  },
   orderSummary: {
     borderTopWidth: 1,
     borderTopColor: '#F5F5F5',
