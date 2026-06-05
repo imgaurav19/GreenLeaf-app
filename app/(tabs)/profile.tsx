@@ -4,12 +4,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useUser } from '@/context/UserContext';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const { userName, setUserName, isDarkMode, setIsDarkMode, avatar } = useUser();
   const [pushNotifs, setPushNotifs] = useState(true);
-  const [userName, setUserName] = useState('Scarlett');
   const [isEditing, setIsEditing] = useState(false);
 
   const handleLogout = () => {
@@ -44,7 +44,7 @@ export default function ProfileScreen() {
         {/* Profile Section */}
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
-            <Image source={{ uri: 'https://avatar.iran.liara.run/public/65' }} style={styles.avatar} />
+            <Image source={{ uri: avatar }} style={styles.avatar} />
             <TouchableOpacity style={styles.editBadge}>
               <Ionicons name="pencil" size={14} color="#FFF" />
             </TouchableOpacity>

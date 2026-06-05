@@ -10,15 +10,18 @@ type UserContextType = {
   setLocationCity: (city: string) => void;
   area: string;
   setArea: (area: string) => void;
+  isDarkMode: boolean;
+  setIsDarkMode: (darkMode: boolean) => void;
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [userName, setUserName] = useState('Jacob');
+  const [userName, setUserName] = useState('Rehan');
   const [avatar, setAvatar] = useState('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop');
   const [locationCity, setLocationCity] = useState('Kolkata');
   const [area, setArea] = useState('Finding area...');
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   useEffect(() => {
     (async () => {
@@ -39,7 +42,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <UserContext.Provider value={{ userName, setUserName, avatar, setAvatar, locationCity, setLocationCity, area, setArea }}>
+    <UserContext.Provider value={{ userName, setUserName, avatar, setAvatar, locationCity, setLocationCity, area, setArea, isDarkMode, setIsDarkMode }}>
       {children}
     </UserContext.Provider>
   );

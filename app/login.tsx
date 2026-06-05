@@ -9,7 +9,7 @@ import { useUser } from '@/context/UserContext';
 export default function LoginScreen() {
   const router = useRouter();
   const { setUserName } = useUser();
-  const [name, setName] = useState('Gaurav');
+  const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
@@ -18,6 +18,10 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     if (loading) return;
     if (step === 'phone') {
+      if (!name.trim()) {
+        Alert.alert('Name Required', 'Please enter your name.');
+        return;
+      }
       if (phone.length < 10) {
         Alert.alert('Invalid Number', 'Please enter a valid 10-digit mobile number.');
         return;
@@ -54,7 +58,16 @@ export default function LoginScreen() {
               <>
                 <Text style={styles.mainTitle}>Enter your details</Text>
                 
-
+                <View style={styles.nameInputRow}>
+                  <Ionicons name="person-outline" size={20} color="#666" />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter your name"
+                    placeholderTextColor="#999"
+                    value={name}
+                    onChangeText={setName}
+                  />
+                </View>
 
                 <View style={styles.row}>
                   <View style={styles.countryPicker}>

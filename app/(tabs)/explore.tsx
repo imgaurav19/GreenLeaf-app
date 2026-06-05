@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useCart } from '@/context/CartContext';
 import { StatusBar } from 'expo-status-bar';
+import { useUser } from '@/context/UserContext';
 
 const { width } = Dimensions.get('window');
 
@@ -49,38 +50,46 @@ const TRENDING = [
 export default function ExploreScreen() {
   const insets = useSafeAreaInsets();
   const { addItem } = useCart();
+  const { isDarkMode } = useUser();
+
+  const bgColor = isDarkMode ? '#121212' : '#F5F9F6';
+  const headerBg = isDarkMode ? '#1A1A1A' : '#1A2A1A';
+  const textColor = isDarkMode ? '#FFFFFF' : '#1A2A1A';
+  const subTextColor = isDarkMode ? '#AAAAAA' : '#556B55';
+  const cardBg = isDarkMode ? '#1E1E1E' : '#FFFFFF';
+  const borderColor = isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,200,129,0.1)';
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
-      <View style={{ height: insets.top, backgroundColor: '#1A1A1A' }} />
+    <View style={[styles.container, { backgroundColor: bgColor }]}>
+      <StatusBar style={isDarkMode ? "light" : "dark"} />
+      <View style={{ height: insets.top, backgroundColor: headerBg }} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { backgroundColor: headerBg }]}>
           <Text style={styles.headerTitle}>Explore Garden</Text>
-          <View style={styles.searchBar}>
-            <Ionicons name="search" size={20} color="#AAA" />
+          <View style={[styles.searchBar, { backgroundColor: isDarkMode ? '#242424' : 'rgba(255,255,255,0.15)' }]}>
+            <Ionicons name="search" size={20} color={isDarkMode ? '#AAA' : '#EEE'} />
             <TextInput 
-              style={styles.searchInput} 
+              style={[styles.searchInput, { color: '#FFF' }]} 
               placeholder="Search plants, tools, seeds..." 
-              placeholderTextColor="#666" 
+              placeholderTextColor={isDarkMode ? '#666' : 'rgba(255,255,255,0.6)'} 
             />
           </View>
         </View>
 
         {/* Categories Grid */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Categories</Text>
+          <Text style={[styles.sectionTitle, { color: textColor }]}>Categories</Text>
           <View style={styles.categoryGrid}>
             {CATEGORIES.map(cat => (
               <TouchableOpacity
                 key={cat.id}
-                style={[styles.catCard, { backgroundColor: cat.color }]}
+                style={[styles.catCard, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : '#FFFFFF', borderColor }]}
                 onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/store'); }}
               >
                 <Text style={styles.catEmoji}>{cat.icon}</Text>
-                <Text style={styles.catName}>{cat.name}</Text>
+                <Text style={[styles.catName, { color: textColor }]}>{cat.name}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -89,21 +98,21 @@ export default function ExploreScreen() {
         {/* Plant Care Essentials */}
         <View style={styles.section}>
           <View style={styles.sectionRow}>
-            <Text style={styles.sectionTitle}>Plant Care Essentials</Text>
+            <Text style={[styles.sectionTitle, { color: textColor }]}>Plant Care Essentials</Text>
             <TouchableOpacity><Text style={styles.seeAll}>See All</Text></TouchableOpacity>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
             {PLANT_CARE_ESSENTIALS.map(item => (
               <TouchableOpacity
                 key={item.id}
-                style={styles.careCard}
-                onPress={() => { addItem(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+                style={[styles.careCard, { backgroundColor: cardBg, borderColor }]}
+                onPress={() => { addItem(item.id); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
               >
-                <View style={styles.careIconBox}>
+                <View style={[styles.careIconBox, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : '#F8F9FA' }]}>
                   <MaterialCommunityIcons name={item.icon as any} size={28} color="#00C881" />
                 </View>
-                <Text style={styles.careName} numberOfLines={1}>{item.name}</Text>
-                <Text style={styles.careDesc} numberOfLines={1}>{item.desc}</Text>
+                <Text style={[styles.careName, { color: textColor }]} numberOfLines={1}>{item.name}</Text>
+                <Text style={[styles.careDesc, { color: subTextColor }]} numberOfLines={1}>{item.desc}</Text>
                 <View style={styles.carePriceRow}>
                   <Text style={styles.carePrice}>{item.price}</Text>
                   <View style={styles.miniAdd}>
@@ -118,21 +127,21 @@ export default function ExploreScreen() {
         {/* Seasonal Picks */}
         <View style={styles.section}>
           <View style={styles.sectionRow}>
-            <Text style={styles.sectionTitle}>Seasonal Picks</Text>
+            <Text style={[styles.sectionTitle, { color: textColor }]}>Seasonal Picks</Text>
             <TouchableOpacity><Text style={styles.seeAll}>See All</Text></TouchableOpacity>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
             {SEASONAL_PICKS.map(item => (
               <TouchableOpacity
                 key={item.id}
-                style={styles.seasonCard}
-                onPress={() => { addItem(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+                style={[styles.seasonCard, { backgroundColor: cardBg, borderColor }]}
+                onPress={() => { addItem(item.id); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
               >
                 <Image source={item.img} style={styles.seasonImg} resizeMode="contain" />
                 <View style={styles.seasonBadge}>
                   <Text style={styles.seasonBadgeText}>{item.season}</Text>
                 </View>
-                <Text style={styles.seasonName}>{item.name}</Text>
+                <Text style={[styles.seasonName, { color: textColor }]}>{item.name}</Text>
                 <Text style={styles.seasonPrice}>{item.price}</Text>
               </TouchableOpacity>
             ))}
@@ -142,25 +151,25 @@ export default function ExploreScreen() {
         {/* Trending Plants */}
         <View style={styles.section}>
           <View style={styles.sectionRow}>
-            <Text style={styles.sectionTitle}>Trending Plants</Text>
+            <Text style={[styles.sectionTitle, { color: textColor }]}>Trending Plants</Text>
             <TouchableOpacity><Text style={styles.seeAll}>See All</Text></TouchableOpacity>
           </View>
           <View style={styles.plantGrid}>
             {TRENDING.map(plant => (
-              <TouchableOpacity key={plant.id} style={styles.plantCard} onPress={() => router.push('/details')}>
-                <View style={styles.imgBox}>
+              <TouchableOpacity key={plant.id} style={[styles.plantCard, { backgroundColor: cardBg, borderColor }]} onPress={() => router.push('/details')}>
+                <View style={[styles.imgBox, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,200,129,0.03)' }]}>
                   <Image source={plant.img} style={styles.pImg} resizeMode="contain" />
                   <View style={styles.ratingPill}>
                     <Text style={styles.ratingText}>{plant.rating} ★</Text>
                   </View>
                 </View>
-                <View style={styles.pInfo}>
-                  <Text style={styles.pName}>{plant.name}</Text>
+                <View style={[styles.pInfo, { backgroundColor: cardBg }]}>
+                  <Text style={[styles.pName, { color: textColor }]}>{plant.name}</Text>
                   <View style={styles.pRow}>
-                    <Text style={styles.pPrice}>{plant.price}</Text>
+                    <Text style={[styles.pPrice, { color: textColor }]}>{plant.price}</Text>
                     <TouchableOpacity
                       style={styles.addBtn}
-                      onPress={() => { addItem(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+                      onPress={() => { addItem(plant.id); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
                     >
                       <Text style={styles.addBtnText}>ADD</Text>
                     </TouchableOpacity>

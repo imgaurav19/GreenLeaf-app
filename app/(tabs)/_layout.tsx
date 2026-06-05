@@ -17,22 +17,22 @@ const VISIBLE_ROUTES = ['index', 'explore', 'scan_placeholder', 'bag_placeholder
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { itemCount } = useCart();
-  const { avatar } = useUser();
+  const { avatar, isDarkMode } = useUser();
   const { tabBarTranslateY, tabBarOpacity } = useTabBar();
 
   const renderIcon = (routeName: string, isFocused: boolean) => {
-    const color = isFocused ? '#1877F2' : '#000000';
+    const color = isFocused ? '#00C881' : (isDarkMode ? 'rgba(255, 255, 255, 0.45)' : 'rgba(0, 0, 0, 0.4)');
     switch (routeName) {
       case 'index':
-        return <Ionicons name={isFocused ? 'home' : 'home-outline'} size={26} color={color} />;
+        return <Ionicons name={isFocused ? 'home' : 'home-outline'} size={24} color={color} />;
       case 'explore':
-        return <Ionicons name={isFocused ? 'play-circle' : 'play-circle-outline'} size={26} color={color} />;
+        return <Ionicons name={isFocused ? 'compass' : 'compass-outline'} size={25} color={color} />;
       case 'scan_placeholder':
-        return <Ionicons name={isFocused ? 'people' : 'people-outline'} size={26} color={color} />;
+        return <Ionicons name={isFocused ? 'scan' : 'scan-outline'} size={24} color={color} />;
       case 'bag_placeholder':
         return (
           <View>
-            <Ionicons name={isFocused ? 'storefront' : 'storefront-outline'} size={26} color={color} />
+            <Ionicons name={isFocused ? 'bag' : 'bag-outline'} size={24} color={color} />
             {itemCount > 0 && (
               <View style={styles.badgeContainer}>
                 <Text style={styles.badgeText}>{itemCount}</Text>
@@ -42,7 +42,11 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         );
       case 'profile':
         return (
-          <View style={[styles.avatarWrap, isFocused && styles.avatarActive]}>
+          <View style={[
+            styles.avatarWrap, 
+            { borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.15)' },
+            isFocused && { borderColor: '#00C881', borderWidth: 2 }
+          ]}>
             <Image source={{ uri: avatar }} style={styles.avatarImage} />
           </View>
         );
@@ -61,10 +65,18 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           paddingBottom: insets.bottom,
           transform: [{ translateY: tabBarTranslateY }],
           opacity: tabBarOpacity,
+          borderTopColor: isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
         },
       ]}
     >
-      <BlurView intensity={85} tint="light" style={styles.tabBarBlur}>
+      <BlurView 
+        intensity={85} 
+        tint={isDarkMode ? 'dark' : 'light'} 
+        style={[
+          styles.tabBarBlur,
+          { backgroundColor: isDarkMode ? 'rgba(18, 18, 18, 0.85)' : 'rgba(255, 255, 255, 0.85)' }
+        ]}
+      >
         {visibleRoutes.map((route) => {
           const isFocused = state.routes[state.index].name === route.name;
 
@@ -87,7 +99,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 
           return (
             <TouchableOpacity key={route.key} onPress={onPress} style={styles.tabItem} activeOpacity={0.7}>
-              {isFocused && <View style={styles.activeIndicator} />}
+              {isFocused && <View style={[styles.activeIndicator, { backgroundColor: '#00C881' }]} />}
               {renderIcon(route.name, isFocused)}
             </TouchableOpacity>
           );

@@ -62,9 +62,15 @@ const FERTILIZERS = [
 
 export default function HomeScreen() {
   const { addItem, removeItem, getItemQuantity, itemCount } = useCart();
-  const { userName, avatar, locationCity, setLocationCity, area, setArea } = useUser();
+  const { userName, avatar, locationCity, setLocationCity, area, setArea, isDarkMode } = useUser();
   const [activeRoom, setActiveRoom] = useState('Living Room');
   const insets = useSafeAreaInsets();
+
+  const bgColor = isDarkMode ? '#121212' : '#F5F9F6';
+  const textColor = isDarkMode ? '#FFFFFF' : '#1A2A1A';
+  const subTextColor = isDarkMode ? '#AAAAAA' : '#556B55';
+  const cardBg = isDarkMode ? '#1E1E1E' : '#FFFFFF';
+  const borderColor = isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,200,129,0.1)';
 
   const handleLocationPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -119,9 +125,9 @@ export default function HomeScreen() {
   );
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
-      <View style={{ height: insets.top, backgroundColor: '#1A1A1A' }} />
+    <View style={[styles.container, { backgroundColor: bgColor }]}>
+      <StatusBar style={isDarkMode ? "light" : "dark"} />
+      <View style={{ height: insets.top, backgroundColor: isDarkMode ? '#1A1A1A' : '#1A2A1A' }} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 150 }}>
 
@@ -133,13 +139,13 @@ export default function HomeScreen() {
               style={styles.headerAvatar} 
             />
             <View>
-              <Text style={styles.headerGreeting}>Hey {userName}</Text>
-              <Text style={styles.headerSub}>{"Let's care for your plants"}</Text>
+              <Text style={[styles.headerGreeting, { color: textColor }]}>Hey {userName}</Text>
+              <Text style={[styles.headerSub, { color: subTextColor }]}>{"Let's care for your plants"}</Text>
             </View>
           </View>
           <View style={styles.headerRight}>
-            <TouchableOpacity style={styles.notifBtn} onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}>
-              <Ionicons name="notifications-outline" size={24} color="#000" />
+            <TouchableOpacity style={[styles.notifBtn, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' }]} onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}>
+              <Ionicons name="notifications-outline" size={24} color={textColor} />
               <View style={styles.notifDot} />
             </TouchableOpacity>
           </View>
@@ -148,25 +154,25 @@ export default function HomeScreen() {
         {/* Address Selector (Secondary Header) */}
         <TouchableOpacity style={styles.addressBar} onPress={handleLocationPress}>
           <Ionicons name="location" size={18} color="#00C881" />
-          <Text style={styles.addressText} numberOfLines={1}>
+          <Text style={[styles.addressText, { color: subTextColor }]} numberOfLines={1}>
             {locationCity}, {area}
           </Text>
-          <Ionicons name="chevron-down" size={14} color="#666" />
+          <Ionicons name="chevron-down" size={14} color={subTextColor} />
         </TouchableOpacity>
 
-        <Text style={styles.mainHeadline}>My Plants</Text>
+        <Text style={[styles.mainHeadline, { color: textColor }]}>My Plants</Text>
 
         <View style={styles.searchContainer}>
-          <View style={styles.searchBox}>
-            <Ionicons name="search-outline" size={20} color="#999" />
+          <View style={[styles.searchBox, { backgroundColor: cardBg, borderColor }]}>
+            <Ionicons name="search-outline" size={20} color={isDarkMode ? '#999' : '#666'} />
             <TextInput 
-              style={styles.searchInputNew} 
+              style={[styles.searchInputNew, { color: textColor }]} 
               placeholder="Search Plants" 
-              placeholderTextColor="#999" 
+              placeholderTextColor={isDarkMode ? '#999' : '#666'} 
             />
           </View>
-          <TouchableOpacity style={styles.filterBtn}>
-            <Ionicons name="options-outline" size={20} color="#000" />
+          <TouchableOpacity style={[styles.filterBtn, { backgroundColor: cardBg, borderColor }]} onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}>
+            <Ionicons name="options-outline" size={20} color={textColor} />
           </TouchableOpacity>
         </View>
 
@@ -180,20 +186,32 @@ export default function HomeScreen() {
           ].map((room) => (
             <TouchableOpacity 
               key={room.name}
-              style={[styles.roomPill, activeRoom === room.name && styles.roomPillActive]}
+              style={[
+                styles.roomPill, 
+                { backgroundColor: cardBg },
+                activeRoom === room.name && styles.roomPillActive
+              ]}
               onPress={() => {
                 setActiveRoom(room.name);
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               }}
             >
-              <View style={[styles.roomIconWrap, activeRoom === room.name && styles.roomIconWrapActive]}>
+              <View style={[
+                styles.roomIconWrap, 
+                { backgroundColor: isDarkMode ? '#FFF' : '#C8E6C9' },
+                activeRoom === room.name && styles.roomIconWrapActive
+              ]}>
                 <Ionicons 
                   name={room.icon as any} 
                   size={18} 
-                  color={activeRoom === room.name ? '#FFF' : '#666'} 
+                  color={activeRoom === room.name ? '#FFF' : '#1A2A1A'} 
                 />
               </View>
-              <Text style={[styles.roomText, activeRoom === room.name && styles.roomTextActive]}>
+              <Text style={[
+                styles.roomText, 
+                { color: isDarkMode ? '#AAAAAA' : '#556B55' },
+                activeRoom === room.name && styles.roomTextActive
+              ]}>
                 {room.name}
               </Text>
             </TouchableOpacity>
@@ -223,31 +241,31 @@ export default function HomeScreen() {
 
         {/* Shop by Vibe */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Shop by Vibe</Text>
+          <Text style={[styles.sectionTitle, { color: textColor }]}>Shop by Vibe</Text>
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.vibeRow}>
           {[
-            { id: '1', name: 'Outdoor', icon: '☀️', color: 'rgba(255,249,196,0.7)' },
-            { id: '2', name: 'Aquatic', icon: '💧', color: 'rgba(225,245,254,0.7)' },
-            { id: '3', name: 'Air Pure', icon: '🌿', color: 'rgba(232,245,233,0.7)' },
-            { id: '4', name: 'Rare', icon: '💎', color: 'rgba(243,229,245,0.7)' },
-            { id: '5', name: 'Seasonal', icon: '🍂', color: 'rgba(255,224,178,0.7)' },
-            { id: '6', name: 'Flowering', icon: '🌺', color: 'rgba(252,228,236,0.7)' },
+            { id: '1', name: 'Outdoor', icon: '☀️', color: isDarkMode ? 'rgba(255,249,196,0.15)' : 'rgba(255,249,196,0.7)' },
+            { id: '2', name: 'Aquatic', icon: '💧', color: isDarkMode ? 'rgba(225,245,254,0.15)' : 'rgba(225,245,254,0.7)' },
+            { id: '3', name: 'Air Pure', icon: '🌿', color: isDarkMode ? 'rgba(232,245,233,0.15)' : 'rgba(232,245,233,0.7)' },
+            { id: '4', name: 'Rare', icon: '💎', color: isDarkMode ? 'rgba(243,229,245,0.15)' : 'rgba(243,229,245,0.7)' },
+            { id: '5', name: 'Seasonal', icon: '🍂', color: isDarkMode ? 'rgba(255,224,178,0.15)' : 'rgba(255,224,178,0.7)' },
+            { id: '6', name: 'Flowering', icon: '🌺', color: isDarkMode ? 'rgba(252,228,236,0.15)' : 'rgba(252,228,236,0.7)' },
           ].map(cat => (
             <TouchableOpacity
               key={cat.id}
-              style={[styles.vibeCard, { backgroundColor: cat.color, borderColor: 'rgba(0,200,129,0.15)' }]}
+              style={[styles.vibeCard, { backgroundColor: cat.color, borderColor }]}
               onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/store'); }}
             >
               <Text style={styles.vibeEmoji}>{cat.icon}</Text>
-              <Text style={styles.vibeName}>{cat.name}</Text>
+              <Text style={[styles.vibeName, { color: textColor }]}>{cat.name}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
 
         {/* Plant Therapy Banner */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Plant Therapy</Text>
+          <Text style={[styles.sectionTitle, { color: textColor }]}>Plant Therapy</Text>
           <TouchableOpacity onPress={() => router.push('/subscription')}>
             <Text style={styles.seeAll}>Subscribe</Text>
           </TouchableOpacity>
@@ -267,7 +285,7 @@ export default function HomeScreen() {
 
         {/* Room Specific Section */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Featured Plants</Text>
+          <Text style={[styles.sectionTitle, { color: textColor }]}>Featured Plants</Text>
           <TouchableOpacity onPress={() => router.push('/store')}>
             <Text style={styles.seeAll}>See All</Text>
           </TouchableOpacity>
@@ -331,18 +349,18 @@ export default function HomeScreen() {
 
         {/* Tools & Accessories */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Tools & Accessories</Text>
+          <Text style={[styles.sectionTitle, { color: textColor }]}>Tools & Accessories</Text>
           <TouchableOpacity onPress={() => router.push('/store')}>
             <Text style={styles.seeAll}>See All</Text>
           </TouchableOpacity>
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
           {TOOLS_DATA.map(tool => (
-            <TouchableOpacity key={tool.id} style={styles.toolCard} onPress={() => { addItem(tool.id); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}>
-              <View style={styles.toolImgWrap}>
+            <TouchableOpacity key={tool.id} style={[styles.toolCard, { backgroundColor: cardBg, borderColor }]} onPress={() => { addItem(tool.id); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}>
+              <View style={[styles.toolImgWrap, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : '#F8F9FA' }]}>
                 <Image source={tool.img} style={styles.toolImg} resizeMode="contain" />
               </View>
-              <Text style={styles.toolName}>{tool.name}</Text>
+              <Text style={[styles.toolName, { color: textColor }]}>{tool.name}</Text>
               <Text style={styles.toolPrice}>{tool.price}</Text>
               <View style={styles.toolAddPill}>
                 <Ionicons name="add" size={14} color="#FFF" />
@@ -353,16 +371,16 @@ export default function HomeScreen() {
 
         {/* Safe Pesticides Section */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Safe Pesticides</Text>
+          <Text style={[styles.sectionTitle, { color: textColor }]}>Safe Pesticides</Text>
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
           {PESTICIDES_DATA.map(item => (
-            <TouchableOpacity key={item.id} style={styles.pesticideCard} onPress={() => { addItem(item.id); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}>
-              <View style={styles.pestTag}>
-                <Text style={styles.pestTagText}>{item.tag}</Text>
+            <TouchableOpacity key={item.id} style={[styles.pesticideCard, { backgroundColor: cardBg, borderColor }]} onPress={() => { addItem(item.id); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}>
+              <View style={[styles.pestTag, { backgroundColor: isDarkMode ? 'rgba(0,200,129,0.15)' : '#E8F5E9' }]}>
+                <Text style={[styles.pestTagText, { color: isDarkMode ? '#00C881' : '#2E7D32' }]}>{item.tag}</Text>
               </View>
               <MaterialCommunityIcons name="spray-bottle" size={32} color="#00C881" />
-              <Text style={styles.pestName}>{item.name}</Text>
+              <Text style={[styles.pestName, { color: textColor }]}>{item.name}</Text>
               <Text style={styles.pestPrice}>{item.price}</Text>
             </TouchableOpacity>
           ))}
@@ -370,18 +388,18 @@ export default function HomeScreen() {
 
         {/* Organic Fertilizers */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Organic Fertilizers</Text>
+          <Text style={[styles.sectionTitle, { color: textColor }]}>Organic Fertilizers</Text>
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
           {FERTILIZERS.map(item => (
-            <TouchableOpacity key={item.id} style={styles.fertCard} onPress={() => { addItem(item.id); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}>
+            <TouchableOpacity key={item.id} style={[styles.fertCard, { backgroundColor: cardBg, borderColor }]} onPress={() => { addItem(item.id); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}>
               <MaterialCommunityIcons name="leaf-circle" size={32} color="#4CAF50" />
               <View style={styles.fertInfo}>
-                <Text style={styles.fertName}>{item.name}</Text>
-                <Text style={styles.fertDesc}>{item.desc}</Text>
-                <Text style={styles.fertPrice}>{item.price}</Text>
+                <Text style={[styles.fertName, { color: textColor }]}>{item.name}</Text>
+                <Text style={[styles.fertDesc, { color: subTextColor }]}>{item.desc}</Text>
+                <Text style={[styles.fertPrice, { color: isDarkMode ? '#D8F36C' : '#2E7D32' }]}>{item.price}</Text>
               </View>
-              <View style={styles.fertAdd}>
+              <View style={[styles.fertAdd, { backgroundColor: isDarkMode ? '#00C881' : '#2E7D32' }]}>
                 <Ionicons name="add" size={18} color="#FFF" />
               </View>
             </TouchableOpacity>
@@ -390,7 +408,7 @@ export default function HomeScreen() {
 
         {/* Featured Hero Plants — Swipeable */}
         <View style={[styles.sectionHeader, { marginTop: 5 }]}>
-          <Text style={styles.sectionTitle}>Featured Plants</Text>
+          <Text style={[styles.sectionTitle, { color: textColor }]}>Featured Plants</Text>
           <TouchableOpacity><Text style={styles.seeAll}>See All</Text></TouchableOpacity>
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingLeft: 20, gap: 14, paddingRight: 20, marginBottom: 24 }}>
@@ -398,7 +416,7 @@ export default function HomeScreen() {
             <TouchableOpacity
               key={plant.id}
               onPress={() => router.push('/details')}
-              style={styles.heroCard}
+              style={[styles.heroCard, { backgroundColor: isDarkMode ? '#1E1E1E' : '#E8F5E9' }]}
               activeOpacity={0.9}
             >
               <Image source={plant.img} style={styles.heroImg} resizeMode="contain" />
@@ -421,7 +439,7 @@ export default function HomeScreen() {
                     style={styles.heroAddBtn}
                     onPress={(e) => {
                       e.stopPropagation();
-                      addItem();
+                      addItem(plant.id);
                       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                     }}
                   >
@@ -435,7 +453,7 @@ export default function HomeScreen() {
 
         {/* All Listed Plants — Grid */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>All Plants</Text>
+          <Text style={[styles.sectionTitle, { color: textColor }]}>All Plants</Text>
           <TouchableOpacity><Text style={styles.seeAll}>Sort By</Text></TouchableOpacity>
         </View>
         <View style={styles.grid}>
@@ -443,10 +461,10 @@ export default function HomeScreen() {
             <TouchableOpacity
               key={plant.id}
               onPress={() => router.push('/details')}
-              style={styles.plantCard}
+              style={[styles.plantCard, { backgroundColor: cardBg, borderColor }]}
               activeOpacity={0.9}
             >
-              <View style={styles.imgBox}>
+              <View style={[styles.imgBox, { backgroundColor: isDarkMode ? '#222' : 'rgba(0,200,129,0.04)' }]}>
                 <Image source={plant.img} style={styles.pImg} resizeMode="contain" />
                 <View style={styles.etaBadge}>
                   <Ionicons name="timer-outline" size={10} color="#1A2A1A" />
@@ -457,14 +475,14 @@ export default function HomeScreen() {
                 </View>
               </View>
               <View style={styles.pInfo}>
-                <Text style={styles.pName} numberOfLines={1}>{plant.name}</Text>
+                <Text style={[styles.pName, { color: textColor }]} numberOfLines={1}>{plant.name}</Text>
                 <View style={styles.priceRow}>
-                  <Text style={styles.pPrice}>{plant.price}</Text>
+                  <Text style={[styles.pPrice, { color: textColor }]}>{plant.price}</Text>
                   <TouchableOpacity
                     style={styles.addBtn}
                     onPress={(e) => {
                       e.stopPropagation();
-                      addItem();
+                      addItem(plant.id);
                       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     }}
                   >
