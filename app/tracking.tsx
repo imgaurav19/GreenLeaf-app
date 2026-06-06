@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Dimensions, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -69,6 +69,24 @@ export default function TrackingScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }, 4000);
 
+    const deliveryTimer = setTimeout(() => {
+      setStatus('delivered');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setTimeout(() => {
+        router.replace({
+          pathname: '/orders',
+          params: {
+            items: params.items,
+            subtotal: params.subtotal,
+            deliveryFee: params.deliveryFee,
+            discount: params.discount,
+            total: params.total,
+            status: 'Delivered'
+          }
+        });
+      }, 2000);
+    }, 12000); // Fast simulation for testing
+
     const interval = setInterval(() => {
       setMinutes(m => (m > 1 ? m - 1 : 1));
     }, 60000);
@@ -76,12 +94,15 @@ export default function TrackingScreen() {
     // Simulate biker movement
     let step = 0;
     const moveInterval = setInterval(() => {
-      step = (step + 1) % ROUTE_COORDS.length;
-      setBikerPos(ROUTE_COORDS[step]);
-    }, 3000);
+      if (step < ROUTE_COORDS.length - 1) {
+        step++;
+        setBikerPos(ROUTE_COORDS[step]);
+      }
+    }, 2000);
 
     return () => {
       clearTimeout(timer);
+      clearTimeout(deliveryTimer);
       clearInterval(interval);
       clearInterval(moveInterval);
     };
@@ -104,7 +125,7 @@ export default function TrackingScreen() {
         {/* Route line */}
         <Polyline
           coordinates={ROUTE_COORDS}
-          strokeColor="#00C881"
+          strokeColor="#1A2A1A"
           strokeWidth={4}
           lineDashPattern={[8, 4]}
         />
@@ -118,9 +139,9 @@ export default function TrackingScreen() {
 
         {/* Biker marker */}
         <Marker coordinate={bikerPos} title="Delivery Partner">
-          <View style={styles.bikerMarker}>
-            <View style={styles.bikerPulse} />
-            <MaterialCommunityIcons name="moped" size={20} color="#FFF" />
+          <View style={[styles.bikerMarker, { backgroundColor: '#1A2A1A', borderColor: '#D8F36C' }]}>
+            <View style={[styles.bikerPulse, { backgroundColor: 'rgba(216, 243, 108, 0.3)' }]} />
+            <MaterialCommunityIcons name="truck-delivery" size={20} color="#D8F36C" />
           </View>
         </Marker>
 
@@ -158,16 +179,16 @@ export default function TrackingScreen() {
         <View style={styles.handle} />
 
         <View style={styles.statusRow}>
-          <View style={styles.deliveryInfo}>
+          <View style={styles.deliveryAvatar}>
+            <Image source={{uri: 'https://i.pravatar.cc/150?img=11'}} style={{width: 44, height: 44, borderRadius: 22}} />
+          </View>
+          <View style={[styles.deliveryInfo, { marginLeft: 12 }]}>
             <Text style={styles.statusTitle}>
-              {status === 'dispatched' ? 'Your order is being packed' : 'Valet is reaching the nursery'}
+              {status === 'dispatched' ? 'Finding Delivery Partner' : 'Ramesh Kumar'}
             </Text>
             <Text style={styles.statusSub}>
-              {status === 'dispatched' ? 'Preparing your plants for dispatch...' : 'Arun is picking up your plants...'}
+              {status === 'dispatched' ? 'Allocating nearest valet...' : 'Delivery Partner • 4.9 ★'}
             </Text>
-          </View>
-          <View style={styles.deliveryAvatar}>
-            <MaterialCommunityIcons name="account" size={28} color="#00C881" />
           </View>
         </View>
 

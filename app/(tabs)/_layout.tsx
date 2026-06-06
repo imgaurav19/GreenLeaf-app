@@ -12,7 +12,7 @@ import { useCart } from '@/context/CartContext';
 import { useUser } from '@/context/UserContext';
 import { TabBarProvider, useTabBar } from '@/context/TabBarContext';
 
-const VISIBLE_ROUTES = ['index', 'explore', 'scan_placeholder', 'bag_placeholder', 'profile'];
+const VISIBLE_ROUTES = ['index', 'scan_placeholder', 'bag_placeholder'];
 
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
@@ -69,12 +69,10 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         },
       ]}
     >
-      <BlurView 
-        intensity={85} 
-        tint={isDarkMode ? 'dark' : 'light'} 
+      <View
         style={[
-          styles.tabBarBlur,
-          { backgroundColor: isDarkMode ? 'rgba(18, 18, 18, 0.85)' : 'rgba(255, 255, 255, 0.85)' }
+          styles.tabBarSolid,
+          { backgroundColor: isDarkMode ? '#121212' : '#FFFFFF' }
         ]}
       >
         {visibleRoutes.map((route) => {
@@ -104,7 +102,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             </TouchableOpacity>
           );
         })}
-      </BlurView>
+      </View>
     </Animated.View>
   );
 }
@@ -147,19 +145,11 @@ function TabLayoutInner() {
           >
             <View style={styles.checkoutLeft}>
               <View style={styles.checkoutBag}>
-                <Ionicons name="bag" size={20} color="#FFF" />
+                <Ionicons name="bag" size={24} color="#FFF" />
                 <View style={styles.checkoutCount}>
                   <Text style={styles.checkoutCountText}>{itemCount}</Text>
                 </View>
               </View>
-              <View>
-                <Text style={styles.checkoutTitle}>{itemCount} Item{itemCount > 1 ? 's' : ''}</Text>
-                <Text style={styles.checkoutSubtitle}>View Bag & Checkout</Text>
-              </View>
-            </View>
-            <View style={styles.checkoutRight}>
-              <Text style={styles.checkoutAction}>Checkout</Text>
-              <Ionicons name="chevron-forward" size={18} color="#FFF" />
             </View>
           </LinearGradient>
         </TouchableOpacity>
@@ -185,13 +175,12 @@ const styles = StyleSheet.create({
     borderTopWidth: 0.5,
     borderTopColor: 'rgba(0,0,0,0.1)',
   },
-  tabBarBlur: {
+  tabBarSolid: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
     height: 60,
-    backgroundColor: 'rgba(255,255,255,0.75)',
-    overflow: 'hidden',
+    backgroundColor: '#FFF',
   },
   tabItem: {
     flex: 1,
@@ -247,39 +236,32 @@ const styles = StyleSheet.create({
   },
   checkoutBar: {
     position: 'absolute',
-    left: 20,
     right: 20,
+    width: 60,
     height: 60,
-    borderRadius: 18,
+    borderRadius: 30,
     overflow: 'hidden',
     shadowColor: '#00C881',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
     elevation: 8,
     zIndex: 1000,
   },
   checkoutInner: {
     flex: 1,
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    justifyContent: 'center',
   },
-  checkoutLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  checkoutLeft: { alignItems: 'center', justifyContent: 'center' },
   checkoutBag: {
-    width: 36, height: 36, borderRadius: 10,
-    backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center', justifyContent: 'center',
   },
   checkoutCount: {
-    position: 'absolute', top: -4, right: -4,
-    backgroundColor: '#FFF', width: 16, height: 16, borderRadius: 8,
+    position: 'absolute', top: -8, right: -12,
+    backgroundColor: '#FFF', minWidth: 20, height: 20, borderRadius: 10,
     alignItems: 'center', justifyContent: 'center',
+    paddingHorizontal: 4,
   },
-  checkoutCountText: { color: '#00C881', fontSize: 9, fontWeight: '900' },
-  checkoutTitle: { color: '#FFF', fontSize: 14, fontWeight: '800' },
-  checkoutSubtitle: { color: 'rgba(255,255,255,0.85)', fontSize: 10, fontWeight: '500' },
-  checkoutRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  checkoutAction: { color: '#FFF', fontSize: 12, fontWeight: '800', textTransform: 'uppercase' },
+  checkoutCountText: { color: '#00C881', fontSize: 11, fontWeight: '900' },
 });

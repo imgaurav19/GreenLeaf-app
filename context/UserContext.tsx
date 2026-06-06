@@ -14,17 +14,27 @@ type UserContextType = {
   setCoords: (coords: { latitude: number; longitude: number }) => void;
   isDarkMode: boolean;
   setIsDarkMode: (darkMode: boolean) => void;
+  ownedPlants: any[];
+  addOwnedPlants: (plants: any[]) => void;
+  globalFilter: string;
+  setGlobalFilter: (filter: string) => void;
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [userName, setUserName] = useState('Rehan');
+  const [userName, setUserName] = useState('ImHuman');
   const [avatar, setAvatar] = useState('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop');
   const [locationCity, setLocationCity] = useState('Kolkata');
   const [area, setArea] = useState('Salt Lake, Sector V');
   const [coords, setCoords] = useState({ latitude: 22.5726, longitude: 88.3639 });
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [ownedPlants, setOwnedPlants] = useState<any[]>([]);
+  const [globalFilter, setGlobalFilter] = useState('All');
+
+  const addOwnedPlants = (newPlants: any[]) => {
+    setOwnedPlants(prev => [...prev, ...newPlants]);
+  };
 
   useEffect(() => {
     (async () => {
@@ -46,7 +56,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <UserContext.Provider value={{ userName, setUserName, avatar, setAvatar, locationCity, setLocationCity, area, setArea, coords, setCoords, isDarkMode, setIsDarkMode }}>
+    <UserContext.Provider value={{ 
+      userName, setUserName, avatar, setAvatar, locationCity, setLocationCity, 
+      area, setArea, coords, setCoords, isDarkMode, setIsDarkMode, 
+      ownedPlants, addOwnedPlants, globalFilter, setGlobalFilter 
+    }}>
       {children}
     </UserContext.Provider>
   );

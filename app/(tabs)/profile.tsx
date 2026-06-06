@@ -113,27 +113,17 @@ export default function ProfileScreen() {
           <View style={[styles.groupCard, { backgroundColor: cardBg, borderColor, borderWidth: 1 }]}>
             <View style={styles.settingItem}>
               <View style={styles.settingLeft}>
-                <Ionicons name="moon" size={20} color="#D8F36C" />
+                <Ionicons name="moon" size={22} color="#D8F36C" />
                 <Text style={[styles.settingLabel, { color: textColor }]}>Dark Theme</Text>
               </View>
-              <Switch
-                value={isDarkMode}
-                onValueChange={setIsDarkMode}
-                trackColor={{ false: '#333', true: '#00C881' }}
-                thumbColor={isDarkMode ? '#FFF' : '#AAA'}
-              />
+              <CustomSwitch value={isDarkMode} onValueChange={setIsDarkMode} />
             </View>
             <View style={styles.settingItem}>
               <View style={styles.settingLeft}>
-                <Ionicons name="notifications" size={20} color="#FF9500" />
+                <Ionicons name="notifications" size={22} color="#FF9500" />
                 <Text style={[styles.settingLabel, { color: textColor }]}>Push Notifications</Text>
               </View>
-              <Switch
-                value={pushNotifs}
-                onValueChange={setPushNotifs}
-                trackColor={{ false: '#333', true: '#00C881' }}
-                thumbColor={pushNotifs ? '#FFF' : '#AAA'}
-              />
+              <CustomSwitch value={pushNotifs} onValueChange={setPushNotifs} />
             </View>
           </View>
         </View>
@@ -164,9 +154,11 @@ function BadgeItem({ icon, label, color }: any) {
 
 function SettingItem({ icon, label, badge, color, onPress }: any) {
   return (
-    <TouchableOpacity onPress={onPress} style={styles.settingItem}>
+    <TouchableOpacity onPress={onPress} style={styles.settingItem} activeOpacity={0.7}>
       <View style={styles.settingLeft}>
-        <Ionicons name={icon} size={20} color={color} />
+        <View style={[styles.settingIconBg, { backgroundColor: color + '15' }]}>
+          <Ionicons name={icon} size={22} color={color} />
+        </View>
         <Text style={[styles.settingLabel, { color }]}>{label}</Text>
       </View>
       <View style={styles.settingRight}>
@@ -175,8 +167,20 @@ function SettingItem({ icon, label, badge, color, onPress }: any) {
             <Text style={styles.countBadgeText}>{badge}</Text>
           </View>
         )}
-        <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.3)" />
+        <Ionicons name="chevron-forward" size={18} color="rgba(150,150,150,0.5)" />
       </View>
+    </TouchableOpacity>
+  );
+}
+
+function CustomSwitch({ value, onValueChange }: { value: boolean, onValueChange: (val: boolean) => void }) {
+  return (
+    <TouchableOpacity 
+      activeOpacity={0.8} 
+      style={[styles.customSwitch, { backgroundColor: value ? '#00C881' : '#E0E0E0' }]} 
+      onPress={() => onValueChange(!value)}
+    >
+      <View style={[styles.switchThumb, { transform: [{ translateX: value ? 22 : 2 }] }]} />
     </TouchableOpacity>
   );
 }
@@ -229,22 +233,33 @@ const styles = StyleSheet.create({
 
   // Settings
   settingsGroup: { paddingHorizontal: 20, marginBottom: 25 },
-  groupTitle: { fontSize: 15, fontWeight: '900', marginBottom: 15, textTransform: 'uppercase', letterSpacing: 1 },
-  groupCard: { borderRadius: 20, overflow: 'hidden' },
+  groupTitle: { fontSize: 13, fontWeight: '800', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1.2 },
+  groupCard: { borderRadius: 24, overflow: 'hidden' },
   settingItem: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 18,
+    borderBottomWidth: 1, borderBottomColor: 'rgba(150,150,150,0.1)',
   },
-  settingLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  settingLabel: { fontSize: 15, fontWeight: '700' },
-  settingRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  countBadge: { backgroundColor: '#D8F36C', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
-  countBadgeText: { color: '#1A2A1A', fontSize: 10, fontWeight: '900' },
+  settingLeft: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  settingIconBg: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  settingLabel: { fontSize: 16, fontWeight: '600' },
+  settingRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  countBadge: { backgroundColor: '#D8F36C', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+  countBadgeText: { color: '#1A2A1A', fontSize: 12, fontWeight: '900' },
   
+  customSwitch: {
+    width: 52, height: 30, borderRadius: 15, justifyContent: 'center',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2,
+  },
+  switchThumb: {
+    width: 26, height: 26, borderRadius: 13, backgroundColor: '#FFF',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4, elevation: 4,
+  },
+
   logoutBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
-    marginHorizontal: 20, marginTop: 10, marginBottom: 20, height: 56,
-    borderRadius: 16, backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    marginHorizontal: 20, marginTop: 10, marginBottom: 30, height: 56,
+    borderRadius: 20, backgroundColor: 'rgba(255, 59, 48, 0.1)',
   },
   logoutText: { color: '#FF3B30', fontSize: 16, fontWeight: '900' },
-  versionText: { textAlign: 'center', fontSize: 11, marginBottom: 40, fontWeight: '600' },
+  versionText: { textAlign: 'center', fontSize: 11, marginBottom: 40, fontWeight: '600', letterSpacing: 0.5 },
 });

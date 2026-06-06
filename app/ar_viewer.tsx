@@ -40,8 +40,8 @@ export default function ARVRScreen() {
             <Ionicons name="close" size={24} color="#FFF" />
           </TouchableOpacity>
           <View style={styles.modePill}>
-            <MaterialCommunityIcons name="brain" size={14} color="#D8F36C" />
-            <Text style={styles.modeText}>AI Disease Check</Text>
+            <Ionicons name="cube-outline" size={16} color="#D8F36C" />
+            <Text style={styles.modeText}>AR Placement Mode</Text>
           </View>
           <TouchableOpacity style={styles.roundBtn}>
             <Ionicons name="flash-outline" size={24} color="#FFF" />
@@ -61,8 +61,8 @@ export default function ARVRScreen() {
           </View>
 
           <View style={styles.scanPrompt}>
-            <Ionicons name="camera" size={24} color="#D8F36C" />
-            <Text style={styles.promptText}>Tap to place plant on floor</Text>
+            <Ionicons name="scan-outline" size={20} color="#D8F36C" />
+            <Text style={styles.promptText}>Scanning surface... Tap to place plant</Text>
           </View>
         </View>
 
@@ -72,13 +72,13 @@ export default function ARVRScreen() {
             <Text style={styles.shelfTitle}>Select Plant for AR View</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.shelfScroll}>
               {[
-                { id: 1, img: require('@/assets/images/succulent_plant.png'), name: 'Aloe' },
-                { id: 2, img: require('@/assets/images/office_plant.png'), name: 'Zami' },
-                { id: 3, img: require('@/assets/images/fiddle_leaf_fig.png'), name: 'Ficus' },
-                { id: 4, img: require('@/assets/images/succulent_plant.png'), name: 'Cactus' },
+                { id: 1, img: require('@/assets/images/succulent_plant.png'), name: 'Aloe Vera' },
+                { id: 2, img: require('@/assets/images/office_plant.png'), name: 'Money Plant' },
+                { id: 3, img: require('@/assets/images/fiddle_leaf_fig.png'), name: 'Fiddle Leaf Fig' },
+                { id: 4, img: require('@/assets/images/succulent_plant.png'), name: 'Snake Plant' },
               ].map(item => (
                 <TouchableOpacity key={item.id} style={styles.shelfItem}>
-                  <Image source={item.img} style={styles.shelfImg} />
+                  <Image source={item.img} style={styles.shelfImg} resizeMode="contain" />
                   <Text style={styles.shelfItemName}>{item.name}</Text>
                 </TouchableOpacity>
               ))}

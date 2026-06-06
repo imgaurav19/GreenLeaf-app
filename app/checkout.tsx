@@ -23,7 +23,7 @@ const PAYMENT_METHODS = [
 
 export default function CheckoutScreen() {
   const { items, itemCount, clearCart } = useCart();
-  const { locationCity, area, isDarkMode } = useUser();
+  const { locationCity, area, isDarkMode, addOwnedPlants } = useUser();
   const [selectedPayment, setSelectedPayment] = useState('cod');
   const [promoCode, setPromoCode] = useState('');
   
@@ -35,6 +35,14 @@ export default function CheckoutScreen() {
   const [cardNumber, setCardNumber] = useState('');
   const [expiry, setExpiry] = useState('');
   const [cvv, setCvv] = useState('');
+  
+  // Full Address Details
+  const [houseNo, setHouseNo] = useState('');
+  const [landmark, setLandmark] = useState('');
+
+  // Delivery Time
+  const [selectedDeliveryTime, setSelectedDeliveryTime] = useState('15 - 30 mins');
+  const DELIVERY_OPTIONS = ['15 - 30 mins', '1 Week', '2 Weeks', '3 Weeks'];
 
   // Map cart items to product details
   const cartProducts = items.map(item => {
@@ -61,18 +69,12 @@ export default function CheckoutScreen() {
 
     if (selectedPayment === 'cod') {
       // Immediate flow
-      setPaymentStatus('success');
-      setTimeout(() => {
-        proceedToSuccess();
-      }, 1500);
+      proceedToSuccess();
     } else if (selectedPayment === 'upi') {
       // UPI Processing simulation
       setPaymentStatus('processing_upi');
       setTimeout(() => {
-        setPaymentStatus('success');
-        setTimeout(() => {
-          proceedToSuccess();
-        }, 1200);
+        proceedToSuccess();
       }, 2500);
     } else if (selectedPayment === 'card') {
       // Show card form
@@ -88,37 +90,39 @@ export default function CheckoutScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setPaymentStatus('processing_card');
     setTimeout(() => {
-      setPaymentStatus('success');
-      setTimeout(() => {
-        proceedToSuccess();
-      }, 1200);
+      proceedToSuccess();
     }, 2000);
   };
 
   const proceedToSuccess = () => {
-    setPaymentStatus('idle');
+    setPaymentStatus('success');
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     
-    // Pass ordered items and calculations as search params
-    const orderedItems = cartProducts.map(p => ({
-      name: p.name,
-      price: p.price,
-      quantity: p.quantity,
-    }));
+    setTimeout(() => {
+      setPaymentStatus('idle');
+      // Pass ordered items and calculations as search params
+      const orderedItems = cartProducts.map(p => ({
+        name: p.name,
+        price: p.price,
+        quantity: p.quantity,
+      }));
 
-    const params = {
-      items: JSON.stringify(orderedItems),
-      subtotal,
-      deliveryFee,
-      discount,
-      total,
-    };
+      const params = {
+        items: JSON.stringify(orderedItems),
+        subtotal,
+        deliveryFee,
+        discount,
+        total,
+      };
 
-    clearCart();
-    
-    router.replace({
-      pathname: '/tracking',
-      params: params,
-    });
+      addOwnedPlants(orderedItems);
+      clearCart();
+      
+      router.replace({
+        pathname: '/tracking',
+        params: params,
+      });
+    }, 2000);
   };
 
   return (
@@ -152,16 +156,34 @@ export default function CheckoutScreen() {
               <View style={styles.sectionHeader}>
                 <Text style={[styles.sectionTitle, { color: isDarkMode ? '#FFF' : '#1A2A1A' }]}>Delivery Address</Text>
                 <TouchableOpacity onPress={() => setPickerVisible(true)}>
-                  <Text style={styles.changeBtn}>Change</Text>
+                  <Text style={styles.changeBtn}>Change Area</Text>
                 </TouchableOpacity>
               </View>
               <View style={[styles.addressCard, { backgroundColor: isDarkMode ? '#1E1E1E' : '#FFF', borderColor: isDarkMode ? 'rgba(0,200,129,0.3)' : 'rgba(0,200,129,0.15)' }]}>
-                <View style={styles.addressIcon}>
-                  <Ionicons name="location" size={22} color="#00C881" />
+                <View style={styles.addressTopRow}>
+                  <View style={styles.addressIcon}>
+                    <Ionicons name="location" size={22} color="#00C881" />
+                  </View>
+                  <View style={styles.addressContent}>
+                    <Text style={[styles.addressName, { color: isDarkMode ? '#FFF' : '#000' }]}>{locationCity}, {area}</Text>
+                  </View>
                 </View>
-                <View style={styles.addressContent}>
-                  <Text style={[styles.addressName, { color: isDarkMode ? '#FFF' : '#000' }]}>{locationCity}</Text>
-                  <Text style={[styles.addressText, { color: isDarkMode ? '#AAA' : '#666' }]}>{area}</Text>
+                
+                <View style={styles.addressForm}>
+                  <TextInput 
+                    style={[styles.addressInput, { color: isDarkMode ? '#FFF' : '#000', borderColor: isDarkMode ? '#333' : '#E0E0E0' }]} 
+                    placeholder="House / Flat No., Building Name"
+                    placeholderTextColor={isDarkMode ? '#888' : '#AAA'}
+                    value={houseNo}
+                    onChangeText={setHouseNo}
+                  />
+                  <TextInput 
+                    style={[styles.addressInput, { color: isDarkMode ? '#FFF' : '#000', borderColor: isDarkMode ? '#333' : '#E0E0E0' }]} 
+                    placeholder="Landmark (Optional)"
+                    placeholderTextColor={isDarkMode ? '#888' : '#AAA'}
+                    value={landmark}
+                    onChangeText={setLandmark}
+                  />
                 </View>
               </View>
             </View>
@@ -285,15 +307,45 @@ export default function CheckoutScreen() {
 
             {/* Delivery Time */}
             <View style={styles.section}>
-              <View style={[styles.deliveryTimeCard, { backgroundColor: isDarkMode ? 'rgba(0,200,129,0.15)' : 'rgba(0,200,129,0.08)', borderColor: isDarkMode ? 'rgba(0,200,129,0.3)' : 'rgba(0,200,129,0.15)' }]}>
-                <View style={styles.deliveryTimeIcon}>
-                  <MaterialCommunityIcons name="clock-fast" size={24} color="#00C881" />
-                </View>
-                <View>
-                  <Text style={[styles.deliveryTimeTitle, { color: isDarkMode ? '#AAA' : '#666' }]}>Estimated Delivery</Text>
-                  <Text style={[styles.deliveryTimeValue, { color: isDarkMode ? '#FFF' : '#1A2A1A' }]}>15 – 30 minutes</Text>
-                </View>
-              </View>
+              <Text style={[styles.sectionTitle, { color: isDarkMode ? '#FFF' : '#1A2A1A' }]}>Estimated Delivery</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
+                {DELIVERY_OPTIONS.map(option => (
+                  <TouchableOpacity
+                    key={option}
+                    style={[
+                      styles.deliveryTimeCard,
+                      {
+                        backgroundColor: selectedDeliveryTime === option 
+                          ? (isDarkMode ? 'rgba(0,200,129,0.15)' : 'rgba(0,200,129,0.08)') 
+                          : (isDarkMode ? '#1E1E1E' : '#FFF'),
+                        borderColor: selectedDeliveryTime === option 
+                          ? (isDarkMode ? 'rgba(0,200,129,0.3)' : 'rgba(0,200,129,0.15)') 
+                          : (isDarkMode ? '#333' : '#F0F0F0'),
+                      }
+                    ]}
+                    onPress={() => setSelectedDeliveryTime(option)}
+                  >
+                    <View style={[
+                      styles.deliveryTimeIcon,
+                      selectedDeliveryTime !== option && { backgroundColor: isDarkMode ? '#333' : '#F5F5F5' }
+                    ]}>
+                      <MaterialCommunityIcons 
+                        name={option === '15 - 30 mins' ? "clock-fast" : "calendar-clock"} 
+                        size={20} 
+                        color={selectedDeliveryTime === option ? "#00C881" : (isDarkMode ? '#AAA' : '#666')} 
+                      />
+                    </View>
+                    <Text style={[
+                      styles.deliveryTimeValue, 
+                      { 
+                        color: selectedDeliveryTime === option 
+                          ? (isDarkMode ? '#FFF' : '#1A2A1A')
+                          : (isDarkMode ? '#AAA' : '#666')
+                      }
+                    ]}>{option}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
             </View>
 
           </ScrollView>
@@ -333,8 +385,8 @@ export default function CheckoutScreen() {
             {paymentStatus === 'processing_upi' && (
               <View style={styles.modalContent}>
                 <ActivityIndicator size="large" color="#00C881" />
-                <Text style={[styles.modalTitle, { color: isDarkMode ? '#FFF' : '#000' }]}>Simulating UPI Payment</Text>
-                <Text style={styles.modalText}>Requesting response from your mobile banking app (GPay / PhonePe)...</Text>
+                <Text style={[styles.modalTitle, { color: isDarkMode ? '#FFF' : '#000' }]}>Waiting for UPI</Text>
+                <Text style={styles.modalText}>Approve the payment request on your UPI app (GPay / PhonePe / Paytm)...</Text>
               </View>
             )}
 
@@ -388,19 +440,17 @@ export default function CheckoutScreen() {
             {paymentStatus === 'processing_card' && (
               <View style={styles.modalContent}>
                 <ActivityIndicator size="large" color="#00C881" />
-                <Text style={[styles.modalTitle, { color: isDarkMode ? '#FFF' : '#000' }]}>Authorizing Card...</Text>
-                <Text style={styles.modalText}>Connecting with payment gateways securely...</Text>
+                <Text style={[styles.modalTitle, { color: isDarkMode ? '#FFF' : '#000' }]}>Processing Payment...</Text>
+                <Text style={styles.modalText}>Securely authorizing your card via RBI-compliant gateway...</Text>
               </View>
             )}
 
-            {/* 4. Payment Success Check */}
+            {/* 3. Success Screen */}
             {paymentStatus === 'success' && (
               <View style={styles.modalContent}>
-                <View style={styles.successIconCircle}>
-                  <Ionicons name="checkmark" size={48} color="#FFF" />
-                </View>
-                <Text style={[styles.modalTitle, { color: '#00C881' }]}>Order Placed Successfully!</Text>
-                <Text style={styles.modalText}>Your payment was successful and your plants are being dispatched.</Text>
+                <Ionicons name="checkmark-circle" size={80} color="#00C881" />
+                <Text style={[styles.modalTitle, { color: isDarkMode ? '#FFF' : '#000', marginTop: 15 }]}>Payment Successful!</Text>
+                <Text style={styles.modalText}>Your order has been placed. Redirecting to live tracking...</Text>
               </View>
             )}
 
@@ -496,15 +546,29 @@ const styles = StyleSheet.create({
   // Address
   addressCard: {
     flexDirection: 'row',
-    borderRadius: 20,
-    padding: 18,
+    borderRadius: 16,
+    padding: 16,
     alignItems: 'center',
     gap: 14,
     shadowColor: '#000',
     shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
     borderWidth: 1,
+  },
+  addressTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  addressForm: {
+    marginTop: 4,
+  },
+  addressInput: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 10,
+    fontSize: 14,
   },
   addressIcon: {
     width: 48,
@@ -693,26 +757,23 @@ const styles = StyleSheet.create({
   deliveryTimeCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 18,
-    padding: 18,
-    gap: 14,
-    borderWidth: 1,
+    borderRadius: 16,
+    padding: 12,
+    paddingRight: 18,
+    gap: 10,
+    borderWidth: 1.5,
   },
   deliveryTimeIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: '#FFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  deliveryTimeTitle: {
-    fontSize: 13,
-  },
   deliveryTimeValue: {
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: 'bold',
-    marginTop: 2,
   },
 
   // Bottom bar

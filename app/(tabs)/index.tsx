@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import {
   StyleSheet, View, Text, ScrollView, Image, TouchableOpacity,
-  TextInput, Dimensions, FlatList, Animated,
+  TextInput, Dimensions, FlatList, Animated, ActivityIndicator, Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -15,7 +15,7 @@ import { useCart } from '@/context/CartContext';
 import { useTabBar } from '@/context/TabBarContext';
 import { useUser } from '@/context/UserContext';
 import LocationPickerModal from '@/components/LocationPickerModal';
-import { getProductById } from '@/constants/products';
+import { getProductById, PRODUCTS } from '@/constants/products';
 
 const { width } = Dimensions.get('window');
 const BANNER_GAP = 12;
@@ -31,45 +31,35 @@ const PROMO_BANNERS = [
   { id: '6', offer: 'FREEBIE', text: 'Free Seeds over ₹499', code: 'FREESEED', bg: require('@/assets/images/succulent_plant.png') },
 ];
 
-const FAST_PLANTS = [
-  { id: 'plant_tulsi', name: 'Tulsi (Holy Basil)', price: '₹49', time: '12 MINS', rating: '4.9', img: require('@/assets/images/succulent_plant.png') },
-  { id: 'plant_money', name: 'Money Plant', price: '₹149', time: '15 MINS', rating: '4.8', img: require('@/assets/images/office_plant.png') },
-  { id: 'plant_aloe', name: 'Aloe Vera', price: '₹99', time: '10 MINS', rating: '4.9', img: require('@/assets/images/succulent_plant.png') },
-  { id: 'plant_ashwa', name: 'Ashwagandha', price: '₹199', time: '18 MINS', rating: '4.7', img: require('@/assets/images/fiddle_leaf_fig.png') },
-  { id: 'plant_peace', name: 'Peace Lily', price: '₹299', time: '20 MINS', rating: '4.6', img: require('@/assets/images/office_plant.png') },
-  { id: 'plant_snake', name: 'Snake Plant', price: '₹349', time: '12 MINS', rating: '4.8', img: require('@/assets/images/succulent_plant.png') },
-  { id: 'plant_curry', name: 'Curry Leaf', price: '₹79', time: '10 MINS', rating: '4.4', img: require('@/assets/images/office_plant.png') },
-  { id: 'plant_jasmine', name: 'Jasmine (Mogra)', price: '₹129', time: '25 MINS', rating: '4.7', img: require('@/assets/images/fiddle_leaf_fig.png') },
-];
-
-const TOOLS_DATA = [
-  { id: 'tool_shears', name: 'Pruning Shears', price: '₹299', img: require('@/assets/images/succulent_plant.png') },
-  { id: 'tool_gloves', name: 'Garden Gloves', price: '₹149', img: require('@/assets/images/office_plant.png') },
-  { id: 'tool_can', name: 'Watering Can', price: '₹399', img: require('@/assets/images/fiddle_leaf_fig.png') },
-  { id: 'tool_bottle', name: 'Spray Bottle', price: '₹99', img: require('@/assets/images/succulent_plant.png') },
-];
-
-const PESTICIDES_DATA = [
-  { id: 'care_neem', name: 'Neem Oil Spray', price: '₹199', tag: 'Organic' },
-  { id: 'care_fungi', name: 'Fungicide Mix', price: '₹249', tag: 'Anti-Fungal' },
-  { id: 'care_insect', name: 'Insect Killer', price: '₹179', tag: 'Safe' },
-  { id: 'care_root', name: 'Root Booster', price: '₹349', tag: 'Growth' },
-];
-
-const FERTILIZERS = [
-  { id: 'fert_npk', name: 'NPK 19-19-19', price: '₹129', desc: 'All-purpose' },
-  { id: 'fert_vermi', name: 'Vermicompost', price: '₹199', desc: 'Organic' },
-  { id: 'fert_bone', name: 'Bone Meal', price: '₹149', desc: 'Phosphorus' },
-  { id: 'fert_seaweed', name: 'Seaweed Extract', price: '₹249', desc: 'Micro-nutrients' },
-];
+const FAST_PLANTS = PRODUCTS.filter(p => p.id.startsWith('plant_')).slice(0, 30);
+const TOOLS_DATA = PRODUCTS.filter(p => p.id.startsWith('tool_'));
+const PESTICIDES_DATA = PRODUCTS.filter(p => p.id.startsWith('care_'));
+const FERTILIZERS = PRODUCTS.filter(p => p.id.startsWith('fert_'));
 
 export default function HomeScreen() {
   const { addItem, removeItem, getItemQuantity, itemCount } = useCart();
   const { handleScroll } = useTabBar();
-  const { userName, avatar, locationCity, setLocationCity, area, setArea, isDarkMode } = useUser();
-  const [activeRoom, setActiveRoom] = useState('All');
+  const { userName, avatar, locationCity, setLocationCity, area, setArea, isDarkMode, ownedPlants, globalFilter, setGlobalFilter } = useUser();
+  const [isFiltering, setIsFiltering] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const handleVibeSelect = (vibe: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setIsFiltering(true);
+    setTimeout(() => {
+      setGlobalFilter(vibe);
+      setIsFiltering(false);
+    }, 2000);
+  };
   const [locationPickerVisible, setLocationPickerVisible] = useState(false);
+  const [showRecommendation, setShowRecommendation] = useState(true);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [eta, setEta] = useState(18);
+
+  useEffect(() => {
+    setEta(Math.floor(Math.random() * (22 - 12 + 1)) + 12);
+  }, []);
+
   const insets = useSafeAreaInsets();
 
   const bgColor = isDarkMode ? '#121212' : '#F5F9F6';
@@ -142,36 +132,45 @@ export default function HomeScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 150 }} onScroll={handleScroll} scrollEventThrottle={16}>
 
-        {/* New Personalized Header */}
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <Image 
-              source={{ uri: avatar }} 
-              style={styles.headerAvatar} 
-            />
+        {/* Blinkit-style Top Section */}
+        <View style={styles.blinkitHeader}>
+          <View style={styles.blinkitTopRow}>
             <View>
-              <Text style={[styles.headerGreeting, { color: textColor }]}>Hey {userName}</Text>
-              <Text style={[styles.headerSub, { color: subTextColor }]}>{"Let's care for your plants"}</Text>
+              <Text style={[styles.blinkitSubTitle, { color: textColor }]}>GreenLeaf in</Text>
+              <Text style={[styles.blinkitMainTime, { color: textColor }]}>{eta} minutes</Text>
+            </View>
+            <View style={styles.blinkitRight}>
+              <TouchableOpacity 
+                style={[styles.blinkitWallet, { backgroundColor: isDarkMode ? '#2A2A2A' : '#FFF' }]}
+                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.blinkitWalletIconBg}>
+                  <Ionicons name="wallet" size={14} color="#FFF" />
+                </View>
+                <Text style={[styles.blinkitWalletText, { color: textColor }]}>₹0</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.blinkitProfile, { backgroundColor: isDarkMode ? '#2A2A2A' : '#FFF' }]}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  router.push('/profile');
+                }}
+                activeOpacity={0.8}
+              >
+                <Image source={{ uri: avatar }} style={{ width: '100%', height: '100%', borderRadius: 24 }} />
+              </TouchableOpacity>
             </View>
           </View>
-          <View style={styles.headerRight}>
-            <TouchableOpacity style={[styles.notifBtn, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' }]} onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}>
-              <Ionicons name="notifications-outline" size={24} color={textColor} />
-              <View style={styles.notifDot} />
-            </TouchableOpacity>
-          </View>
+          
+          <TouchableOpacity style={styles.blinkitAddressRow} onPress={handleLocationPress} activeOpacity={0.7}>
+            <Text style={[styles.blinkitAddressText, { color: textColor }]} numberOfLines={1}>
+              <Text style={{ fontWeight: '900' }}>HOME</Text> - {userName}, {area}
+            </Text>
+            <Ionicons name="caret-down" size={12} color={textColor} style={{ marginTop: 2 }} />
+          </TouchableOpacity>
         </View>
 
-        {/* Address Selector (Secondary Header) */}
-        <TouchableOpacity style={styles.addressBar} onPress={handleLocationPress}>
-          <Ionicons name="location" size={18} color="#00C881" />
-          <Text style={[styles.addressText, { color: subTextColor }]} numberOfLines={1}>
-            {locationCity}, {area}
-          </Text>
-          <Ionicons name="chevron-down" size={14} color={subTextColor} />
-        </TouchableOpacity>
-
-        <Text style={[styles.mainHeadline, { color: textColor }]}>My Plants</Text>
 
         <View style={styles.searchContainer}>
           <View style={[styles.searchBox, { backgroundColor: cardBg, borderColor }]}>
@@ -184,10 +183,31 @@ export default function HomeScreen() {
               onChangeText={setSearchQuery}
             />
           </View>
-          <TouchableOpacity style={[styles.filterBtn, { backgroundColor: cardBg, borderColor }]} onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}>
-            <Ionicons name="options-outline" size={20} color={textColor} />
-          </TouchableOpacity>
         </View>
+
+        {/* Shop by Vibe Moved Here */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.vibeRow, { marginTop: 10, marginBottom: 5 }]}>
+          {[
+            { id: '1', name: 'Outdoor', icon: '☀️', color: isDarkMode ? 'rgba(255,249,196,0.15)' : 'rgba(255,249,196,0.7)' },
+            { id: '2', name: 'Aquatic', icon: '💧', color: isDarkMode ? 'rgba(225,245,254,0.15)' : 'rgba(225,245,254,0.7)' },
+            { id: '3', name: 'Air Pure', icon: '🌿', color: isDarkMode ? 'rgba(232,245,233,0.15)' : 'rgba(232,245,233,0.7)' },
+            { id: '4', name: 'Rare', icon: '💎', color: isDarkMode ? 'rgba(243,229,245,0.15)' : 'rgba(243,229,245,0.7)' },
+            { id: '5', name: 'Seasonal', icon: '🍂', color: isDarkMode ? 'rgba(255,224,178,0.15)' : 'rgba(255,224,178,0.7)' },
+            { id: '6', name: 'Flowering', icon: '🌺', color: isDarkMode ? 'rgba(252,228,236,0.15)' : 'rgba(252,228,236,0.7)' },
+          ].map(cat => (
+            <TouchableOpacity
+              key={cat.id}
+              style={[styles.vibeCard, { backgroundColor: cat.color, borderColor }]}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                router.push({ pathname: '/room', params: { room: cat.name } });
+              }}
+            >
+              <Text style={styles.vibeEmoji}>{cat.icon}</Text>
+              <Text style={[styles.vibeName, { color: textColor }]}>{cat.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
         {/* Room Selectors */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.roomScroll}>
@@ -203,32 +223,25 @@ export default function HomeScreen() {
               style={[
                 styles.roomPill, 
                 { backgroundColor: cardBg },
-                activeRoom === room.name && styles.roomPillActive
               ]}
               onPress={() => {
-                if (room.name === 'All') {
-                  setActiveRoom(room.name);
-                } else {
-                  router.push({ pathname: '/room', params: { room: room.name } });
-                }
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                router.push({ pathname: '/room', params: { room: room.name } });
               }}
             >
               <View style={[
                 styles.roomIconWrap, 
                 { backgroundColor: isDarkMode ? '#FFF' : '#C8E6C9' },
-                activeRoom === room.name && styles.roomIconWrapActive
               ]}>
                 <Ionicons 
                   name={room.icon as any} 
                   size={18} 
-                  color={activeRoom === room.name ? '#FFF' : '#1A2A1A'} 
+                  color={'#1A2A1A'} 
                 />
               </View>
               <Text style={[
                 styles.roomText, 
                 { color: isDarkMode ? '#AAAAAA' : '#556B55' },
-                activeRoom === room.name && styles.roomTextActive
               ]}>
                 {room.name}
               </Text>
@@ -257,29 +270,29 @@ export default function HomeScreen() {
           />
         </View>
 
-        {/* Shop by Vibe */}
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: textColor }]}>Shop by Vibe</Text>
-        </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.vibeRow}>
-          {[
-            { id: '1', name: 'Outdoor', icon: '☀️', color: isDarkMode ? 'rgba(255,249,196,0.15)' : 'rgba(255,249,196,0.7)' },
-            { id: '2', name: 'Aquatic', icon: '💧', color: isDarkMode ? 'rgba(225,245,254,0.15)' : 'rgba(225,245,254,0.7)' },
-            { id: '3', name: 'Air Pure', icon: '🌿', color: isDarkMode ? 'rgba(232,245,233,0.15)' : 'rgba(232,245,233,0.7)' },
-            { id: '4', name: 'Rare', icon: '💎', color: isDarkMode ? 'rgba(243,229,245,0.15)' : 'rgba(243,229,245,0.7)' },
-            { id: '5', name: 'Seasonal', icon: '🍂', color: isDarkMode ? 'rgba(255,224,178,0.15)' : 'rgba(255,224,178,0.7)' },
-            { id: '6', name: 'Flowering', icon: '🌺', color: isDarkMode ? 'rgba(252,228,236,0.15)' : 'rgba(252,228,236,0.7)' },
-          ].map(cat => (
-            <TouchableOpacity
-              key={cat.id}
-              style={[styles.vibeCard, { backgroundColor: cat.color, borderColor }]}
-              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/store'); }}
-            >
-              <Text style={styles.vibeEmoji}>{cat.icon}</Text>
-              <Text style={[styles.vibeName, { color: textColor }]}>{cat.name}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        {/* My Home Garden / Owned Plants */}
+        {ownedPlants && ownedPlants.length > 0 && (
+          <View style={{ marginBottom: 20 }}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: textColor }]}>My Home Garden</Text>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
+              {ownedPlants.map((plant, index) => (
+                <View key={`owned-${index}`} style={[styles.toolCard, { backgroundColor: cardBg, borderColor }]}>
+                  <View style={[styles.toolImgWrap, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : '#F8F9FA' }]}>
+                    <MaterialCommunityIcons name="leaf-circle-outline" size={40} color="#00C881" />
+                  </View>
+                  <Text style={[styles.toolName, { color: textColor }]} numberOfLines={1}>{plant.name}</Text>
+                  <Text style={styles.toolPrice}>Purchased: {plant.quantity}</Text>
+                  <View style={[styles.toolAddPill, { backgroundColor: '#00C881' }]}>
+                    <Ionicons name="checkmark" size={14} color="#FFF" />
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
 
         {/* Plant Therapy Banner */}
         <View style={styles.sectionHeader}>
@@ -311,9 +324,21 @@ export default function HomeScreen() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
           {FAST_PLANTS.filter(plant => {
             if (searchQuery && !plant.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-            if (activeRoom === 'All') return true;
+            if (globalFilter === 'All') return true;
+            
             const pData = getProductById(plant.id);
-            return pData?.rooms?.includes(activeRoom);
+            if (!pData) return false;
+            
+            // Check if filter matches room, tag, or season
+            const inRoom = pData.rooms?.includes(globalFilter);
+            const isTag = pData.tag?.toLowerCase().includes(globalFilter.toLowerCase());
+            const isSeason = pData.season?.toLowerCase().includes(globalFilter.toLowerCase());
+            // Hardcode some vibe mappings
+            const isAirPure = globalFilter === 'Air Pure' && pData.tag?.includes('Air');
+            const isFlowering = globalFilter === 'Flowering' && pData.season;
+            const isAquatic = globalFilter === 'Aquatic' && pData.rooms?.includes('Bathroom');
+            
+            return inRoom || isTag || isSeason || isAirPure || isFlowering || isAquatic;
           }).map(plant => {
             const qty = getItemQuantity(plant.id);
             return (
@@ -330,16 +355,16 @@ export default function HomeScreen() {
                   <View style={styles.plantMainInfo}>
                     <Text style={styles.plantNameOverlay} numberOfLines={2}>{plant.name}</Text>
                     <View style={styles.plantPriceRow}>
-                      <Text style={styles.plantPriceOverlay}>{plant.price}</Text>
+                      <Text style={styles.plantPriceOverlay}>₹{plant.price}</Text>
                       <View style={styles.etaRow}>
                         <Ionicons name="time-outline" size={12} color="#FFF" />
-                        <Text style={styles.etaTextOverlay}>{plant.time}</Text>
+                        <Text style={styles.etaTextOverlay}>{plant.time || '15 MINS'}</Text>
                       </View>
                     </View>
                   </View>
 
                   <View style={styles.ratingBadgeTop}>
-                    <Text style={styles.ratingTextTop}>{plant.rating} ★</Text>
+                    <Text style={styles.ratingTextTop}>{plant.rating || '4.8'} ★</Text>
                   </View>
 
                   {qty === 0 ? (
@@ -384,7 +409,7 @@ export default function HomeScreen() {
                 <Image source={tool.img} style={styles.toolImg} resizeMode="contain" />
               </View>
               <Text style={[styles.toolName, { color: textColor }]}>{tool.name}</Text>
-              <Text style={styles.toolPrice}>{tool.price}</Text>
+              <Text style={styles.toolPrice}>₹{tool.price}</Text>
               <View style={styles.toolAddPill}>
                 <Ionicons name="add" size={14} color="#FFF" />
               </View>
@@ -404,7 +429,7 @@ export default function HomeScreen() {
               </View>
               <MaterialCommunityIcons name="spray-bottle" size={32} color="#00C881" />
               <Text style={[styles.pestName, { color: textColor }]}>{item.name}</Text>
-              <Text style={styles.pestPrice}>{item.price}</Text>
+              <Text style={styles.pestPrice}>₹{item.price}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -420,7 +445,7 @@ export default function HomeScreen() {
               <View style={styles.fertInfo}>
                 <Text style={[styles.fertName, { color: textColor }]}>{item.name}</Text>
                 <Text style={[styles.fertDesc, { color: subTextColor }]}>{item.desc}</Text>
-                <Text style={[styles.fertPrice, { color: isDarkMode ? '#D8F36C' : '#2E7D32' }]}>{item.price}</Text>
+                <Text style={[styles.fertPrice, { color: isDarkMode ? '#D8F36C' : '#2E7D32' }]}>₹{item.price}</Text>
               </View>
               <View style={[styles.fertAdd, { backgroundColor: isDarkMode ? '#00C881' : '#2E7D32' }]}>
                 <Ionicons name="add" size={18} color="#FFF" />
@@ -437,9 +462,19 @@ export default function HomeScreen() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingLeft: 20, gap: 14, paddingRight: 20, marginBottom: 24 }}>
           {FAST_PLANTS.filter(plant => {
             if (searchQuery && !plant.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-            if (activeRoom === 'All') return true;
+            if (globalFilter === 'All') return true;
+            
             const pData = getProductById(plant.id);
-            return pData?.rooms?.includes(activeRoom);
+            if (!pData) return false;
+            
+            const inRoom = pData.rooms?.includes(globalFilter);
+            const isTag = pData.tag?.toLowerCase().includes(globalFilter.toLowerCase());
+            const isSeason = pData.season?.toLowerCase().includes(globalFilter.toLowerCase());
+            const isAirPure = globalFilter === 'Air Pure' && pData.tag?.includes('Air');
+            const isFlowering = globalFilter === 'Flowering' && pData.season;
+            const isAquatic = globalFilter === 'Aquatic' && pData.rooms?.includes('Bathroom');
+            
+            return inRoom || isTag || isSeason || isAirPure || isFlowering || isAquatic;
           }).slice(0, 4).map(plant => (
             <TouchableOpacity
               key={plant.id}
@@ -456,10 +491,10 @@ export default function HomeScreen() {
                   <View style={{ flex: 1 }}>
                     <Text style={styles.heroName}>{plant.name}</Text>
                     <View style={styles.heroMeta}>
-                      <Text style={styles.heroPrice}>{plant.price}</Text>
+                      <Text style={styles.heroPrice}>₹{plant.price}</Text>
                       <View style={styles.heroEta}>
                         <Ionicons name="timer-outline" size={10} color="#D8F36C" />
-                        <Text style={styles.heroEtaText}>{plant.time}</Text>
+                        <Text style={styles.heroEtaText}>{plant.time || '15 MINS'}</Text>
                       </View>
                     </View>
                   </View>
@@ -487,9 +522,19 @@ export default function HomeScreen() {
         <View style={styles.grid}>
           {FAST_PLANTS.filter(plant => {
             if (searchQuery && !plant.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-            if (activeRoom === 'All') return true;
+            if (globalFilter === 'All') return true;
+            
             const pData = getProductById(plant.id);
-            return pData?.rooms?.includes(activeRoom);
+            if (!pData) return false;
+            
+            const inRoom = pData.rooms?.includes(globalFilter);
+            const isTag = pData.tag?.toLowerCase().includes(globalFilter.toLowerCase());
+            const isSeason = pData.season?.toLowerCase().includes(globalFilter.toLowerCase());
+            const isAirPure = globalFilter === 'Air Pure' && pData.tag?.includes('Air');
+            const isFlowering = globalFilter === 'Flowering' && pData.season;
+            const isAquatic = globalFilter === 'Aquatic' && pData.rooms?.includes('Bathroom');
+            
+            return inRoom || isTag || isSeason || isAirPure || isFlowering || isAquatic;
           }).map(plant => (
             <TouchableOpacity
               key={plant.id}
@@ -501,16 +546,16 @@ export default function HomeScreen() {
                 <Image source={plant.img} style={styles.pImg} resizeMode="contain" />
                 <View style={styles.etaBadge}>
                   <Ionicons name="timer-outline" size={10} color="#1A2A1A" />
-                  <Text style={styles.etaText}>{plant.time}</Text>
+                  <Text style={styles.etaText}>{plant.time || '15 MINS'}</Text>
                 </View>
                 <View style={styles.ratingBadge}>
-                  <Text style={styles.ratingText}>{plant.rating} ★</Text>
+                  <Text style={styles.ratingText}>{plant.rating || '4.8'} ★</Text>
                 </View>
               </View>
               <View style={styles.pInfo}>
                 <Text style={[styles.pName, { color: textColor }]} numberOfLines={1}>{plant.name}</Text>
                 <View style={styles.priceRow}>
-                  <Text style={[styles.pPrice, { color: textColor }]}>{plant.price}</Text>
+                  <Text style={[styles.pPrice, { color: textColor }]}>₹{plant.price}</Text>
                   <TouchableOpacity
                     style={styles.addBtn}
                     onPress={(e) => {
@@ -526,11 +571,251 @@ export default function HomeScreen() {
             </TouchableOpacity>
           ))}
         </View>
+
+        {/* Last Seen */}
+        <View style={[styles.sectionHeader, { marginTop: 20 }]}>
+          <Text style={[styles.sectionTitle, { color: textColor }]}>Last Seen 👀</Text>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
+          {PRODUCTS.slice(3, 8).map(plant => (
+            <View key={'last_seen_'+plant.id} style={[styles.toolCard, { backgroundColor: cardBg, borderColor }]}>
+              <TouchableOpacity onPress={() => router.push({ pathname: '/details', params: { id: plant.id } })} activeOpacity={0.8}>
+                <View style={[styles.toolImgWrap, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : '#F5F5F5' }]}>
+                  <Image source={plant.img} style={styles.toolImg} resizeMode="contain" />
+                </View>
+                <Text style={[styles.toolName, { color: textColor }]} numberOfLines={1}>{plant.name}</Text>
+                <Text style={styles.toolPrice}>₹{plant.price}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.toolAddPill}
+                onPress={() => {
+                  addItem(plant.id);
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }}
+              >
+                <Ionicons name="add" size={14} color="#FFF" />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </ScrollView>
+
+        {/* Your Previous Orders */}
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: textColor }]}>Your Previous Orders 📦</Text>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
+          {PRODUCTS.slice(8, 12).map(plant => (
+            <View key={'prev_order_'+plant.id} style={[styles.toolCard, { backgroundColor: cardBg, borderColor }]}>
+              <TouchableOpacity onPress={() => router.push({ pathname: '/details', params: { id: plant.id } })} activeOpacity={0.8}>
+                <View style={[styles.toolImgWrap, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : '#E8F5E9' }]}>
+                  <Image source={plant.img} style={styles.toolImg} resizeMode="contain" />
+                </View>
+                <Text style={[styles.toolName, { color: textColor }]} numberOfLines={1}>{plant.name}</Text>
+                <Text style={styles.toolPrice}>₹{plant.price}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.toolAddPill}
+                onPress={() => {
+                  addItem(plant.id);
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }}
+              >
+                <Ionicons name="refresh" size={14} color="#FFF" />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </ScrollView>
+
+
+        {/* Summer Collection */}
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: textColor }]}>Summer Collection ☀️</Text>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
+          {PRODUCTS.filter(p => p.season === 'Summer' || p.rooms?.includes('Outdoor')).slice(0, 10).map(plant => (
+            <View key={plant.id} style={[styles.toolCard, { backgroundColor: cardBg, borderColor }]}>
+              <TouchableOpacity onPress={() => router.push({ pathname: '/details', params: { id: plant.id } })} activeOpacity={0.8}>
+                <View style={[styles.toolImgWrap, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : '#FFF9C4' }]}>
+                  <Image source={plant.img} style={styles.toolImg} resizeMode="contain" />
+                </View>
+                <Text style={[styles.toolName, { color: textColor }]} numberOfLines={1}>{plant.name}</Text>
+                <Text style={styles.toolPrice}>₹{plant.price}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.toolAddPill}
+                onPress={() => {
+                  addItem(plant.id);
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }}
+              >
+                <Ionicons name="add" size={14} color="#FFF" />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </ScrollView>
+
+        {/* Winter Collection */}
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: textColor }]}>Winter Collection ❄️</Text>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
+          {PRODUCTS.filter(p => p.season === 'Winter' || p.rooms?.includes('Outdoor')).slice(0, 10).map(plant => (
+            <View key={plant.id} style={[styles.toolCard, { backgroundColor: cardBg, borderColor }]}>
+              <TouchableOpacity onPress={() => router.push({ pathname: '/details', params: { id: plant.id } })} activeOpacity={0.8}>
+                <View style={[styles.toolImgWrap, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : '#E3F2FD' }]}>
+                  <Image source={plant.img} style={styles.toolImg} resizeMode="contain" />
+                </View>
+                <Text style={[styles.toolName, { color: textColor }]} numberOfLines={1}>{plant.name}</Text>
+                <Text style={styles.toolPrice}>₹{plant.price}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.toolAddPill}
+                onPress={() => {
+                  addItem(plant.id);
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }}
+              >
+                <Ionicons name="add" size={14} color="#FFF" />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </ScrollView>
+
+        {/* Aquatic Collection */}
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: textColor }]}>Aquatic Collection 💧</Text>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
+          {PRODUCTS.filter(p => p.rooms?.includes('Bathroom')).slice(0, 10).map(plant => (
+            <View key={plant.id} style={[styles.toolCard, { backgroundColor: cardBg, borderColor }]}>
+              <TouchableOpacity onPress={() => router.push({ pathname: '/details', params: { id: plant.id } })} activeOpacity={0.8}>
+                <View style={[styles.toolImgWrap, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : '#E1F5FE' }]}>
+                  <Image source={plant.img} style={styles.toolImg} resizeMode="contain" />
+                </View>
+                <Text style={[styles.toolName, { color: textColor }]} numberOfLines={1}>{plant.name}</Text>
+                <Text style={styles.toolPrice}>₹{plant.price}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.toolAddPill}
+                onPress={() => {
+                  addItem(plant.id);
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }}
+              >
+                <Ionicons name="add" size={14} color="#FFF" />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </ScrollView>
+
       </ScrollView>
-      <LocationPickerModal 
-        visible={locationPickerVisible} 
-        onClose={() => setLocationPickerVisible(false)} 
-      />
+
+      {/* Global Filtering Loading Overlay */}
+      {isFiltering && (
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: isDarkMode ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.85)', zIndex: 1000, justifyContent: 'center', alignItems: 'center' }]}>
+          <ActivityIndicator size="large" color="#00C881" />
+          <Text style={{ marginTop: 15, color: textColor, fontSize: 18, fontWeight: '600' }}>Applying {globalFilter} Vibe...</Text>
+        </View>
+      )}
+
+      {/* Location Picker */}
+      <LocationPickerModal visible={locationPickerVisible} onClose={() => setLocationPickerVisible(false)} />
+
+      {/* Today's Recommendation Modal */}
+      <Modal
+        visible={showRecommendation}
+        transparent={true}
+        animationType="fade"
+      >
+        <View style={styles.recommendationOverlay}>
+          <View style={[styles.recommendationCard, { backgroundColor: cardBg }]}>
+            <TouchableOpacity 
+              style={styles.closeRecBtn} 
+              onPress={() => setShowRecommendation(false)}
+            >
+              <Ionicons name="close" size={24} color={textColor} />
+            </TouchableOpacity>
+            
+            <View style={styles.recBadge}>
+              <Text style={styles.recBadgeText}>TODAY'S PICK</Text>
+            </View>
+            
+            <Image 
+              source={PRODUCTS[0].img} 
+              style={styles.recImage} 
+              resizeMode="contain" 
+            />
+            
+            <Text style={[styles.recTitle, { color: textColor }]}>
+              {PRODUCTS[0].name}
+            </Text>
+            <Text style={styles.recDesc}>
+              Our experts picked this low-maintenance beauty for you today. Perfect for any room!
+            </Text>
+            
+            <View style={styles.recPriceRow}>
+              <Text style={[styles.recPrice, { color: textColor }]}>₹{PRODUCTS[0].price}</Text>
+              {PRODUCTS[0].oldPrice && (
+                <Text style={styles.recOldPrice}>₹{PRODUCTS[0].oldPrice}</Text>
+              )}
+            </View>
+            
+            <TouchableOpacity 
+              style={styles.recAddBtn}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                addItem(PRODUCTS[0].id);
+                setShowRecommendation(false);
+              }}
+            >
+              <Text style={styles.recAddText}>Add to Bag</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Notifications Modal */}
+      <Modal
+        visible={showNotifications}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowNotifications(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+          <View style={{ backgroundColor: cardBg, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, minHeight: 400 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', color: textColor }}>Notifications</Text>
+              <TouchableOpacity onPress={() => setShowNotifications(false)}>
+                <Ionicons name="close-circle-outline" size={28} color={subTextColor} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={{ flexDirection: 'row', marginBottom: 16, backgroundColor: isDarkMode ? '#2A2A2A' : '#F5F5F5', padding: 12, borderRadius: 12 }}>
+                <Ionicons name="water-outline" size={24} color="#00C881" style={{ marginRight: 12 }} />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontWeight: 'bold', color: textColor, marginBottom: 4 }}>Time to water your Fiddle Leaf!</Text>
+                  <Text style={{ color: subTextColor, fontSize: 12 }}>It has been 7 days since you last watered it.</Text>
+                </View>
+              </View>
+              <View style={{ flexDirection: 'row', marginBottom: 16, backgroundColor: isDarkMode ? '#2A2A2A' : '#F5F5F5', padding: 12, borderRadius: 12 }}>
+                <Ionicons name="pricetag-outline" size={24} color="#FFA500" style={{ marginRight: 12 }} />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontWeight: 'bold', color: textColor, marginBottom: 4 }}>Flash Sale: 60% OFF 🪴</Text>
+                  <Text style={{ color: subTextColor, fontSize: 12 }}>Use code GREEN60 at checkout today.</Text>
+                </View>
+              </View>
+              <View style={{ flexDirection: 'row', marginBottom: 16, backgroundColor: isDarkMode ? '#2A2A2A' : '#F5F5F5', padding: 12, borderRadius: 12 }}>
+                <Ionicons name="leaf-outline" size={24} color="#1877F2" style={{ marginRight: 12 }} />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontWeight: 'bold', color: textColor, marginBottom: 4 }}>New Rare Plants Arrived!</Text>
+                  <Text style={{ color: subTextColor, fontSize: 12 }}>Check out the new variegated Monstera.</Text>
+                </View>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
     </View>
   );
 }
@@ -1136,7 +1421,197 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 8,
-    elevation: 6,
+    elevation: 8,
   },
-  heroAddText: { color: '#1A2A1A', fontWeight: '900', fontSize: 13 },
+  
+  // Recommendation Modal
+  recommendationOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  recommendationCard: {
+    width: '100%',
+    borderRadius: 24,
+    padding: 24,
+    alignItems: 'center',
+    position: 'relative',
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 15,
+    elevation: 10,
+  },
+  closeRecBtn: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    zIndex: 10,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  recBadge: {
+    backgroundColor: '#00C881',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    marginBottom: 20,
+  },
+  recBadgeText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
+  recImage: {
+    width: 180,
+    height: 180,
+    marginBottom: 20,
+  },
+  recTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  recDesc: {
+    fontSize: 14,
+    color: '#888',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+    paddingHorizontal: 10,
+  },
+  recPriceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 24,
+  },
+  recPrice: {
+    fontSize: 24,
+    fontWeight: '900',
+  },
+  recOldPrice: {
+    fontSize: 16,
+    color: '#999',
+    textDecorationLine: 'line-through',
+    fontWeight: '600',
+  },
+  recAddBtn: {
+    backgroundColor: '#D8F36C',
+    width: '100%',
+    height: 54,
+    borderRadius: 27,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#D8F36C',
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  recAddText: {
+    color: '#1A2A1A',
+    fontSize: 16,
+    fontWeight: '900',
+  },
+  
+  // Header Badge
+  bagBadgeHeader: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    backgroundColor: '#00C881',
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+    borderWidth: 1.5,
+    borderColor: '#FFF',
+  },
+  bagBadgeTextHeader: {
+    color: '#FFF',
+    fontSize: 9,
+    fontWeight: '900',
+  },
+
+  // Blinkit Header Styles
+  blinkitHeader: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 15,
+  },
+  blinkitTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  blinkitSubTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  blinkitMainTime: {
+    fontSize: 34,
+    fontWeight: '900',
+    marginTop: -4,
+    letterSpacing: -1.5,
+  },
+  blinkitRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  blinkitWallet: {
+    padding: 6,
+    paddingHorizontal: 12,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  blinkitWalletIconBg: {
+    backgroundColor: '#CCA700', // Gold color
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 2,
+  },
+  blinkitWalletText: {
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  blinkitProfile: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  blinkitAddressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  blinkitAddressText: {
+    fontSize: 16,
+  },
 });
