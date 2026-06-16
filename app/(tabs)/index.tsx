@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import {
   StyleSheet, View, Text, ScrollView, Image, TouchableOpacity,
   TextInput, Dimensions, FlatList, Animated, ActivityIndicator, Modal,
@@ -53,6 +53,28 @@ export default function HomeScreen() {
   };
   const [locationPickerVisible, setLocationPickerVisible] = useState(false);
   const [showRecommendation, setShowRecommendation] = useState(true);
+
+  // Pick a random plant for "Today's Pick" — changes daily
+  const todaysPick = useMemo(() => {
+    const today = new Date();
+    const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+    const index = seed % PRODUCTS.filter(p => p.id.startsWith('plant_')).length;
+    return PRODUCTS.filter(p => p.id.startsWith('plant_'))[index];
+  }, []);
+
+  const pickMessages = useMemo(() => {
+    const messages = [
+      'Our experts picked this low-maintenance beauty for you today. Perfect for any room!',
+      'Handpicked by our plant gurus just for you. Add some green to your day!',
+      'Today\'s top recommendation — a crowd favorite that thrives indoors!',
+      'This one\'s trending! Grab it before it sells out today.',
+      'A perfect plant to brighten up your space. Our daily pick for you!',
+      'Freshly curated by our botanists — ideal for your home garden!',
+    ];
+    const today = new Date();
+    const msgIndex = (today.getFullYear() + today.getMonth() + today.getDate()) % messages.length;
+    return messages[msgIndex];
+  }, []);
   const [showNotifications, setShowNotifications] = useState(false);
   const [eta, setEta] = useState(18);
 
@@ -741,22 +763,22 @@ export default function HomeScreen() {
             </View>
             
             <Image 
-              source={PRODUCTS[0].img} 
+              source={todaysPick.img} 
               style={styles.recImage} 
               resizeMode="contain" 
             />
             
             <Text style={[styles.recTitle, { color: textColor }]}>
-              {PRODUCTS[0].name}
+              {todaysPick.name}
             </Text>
             <Text style={styles.recDesc}>
-              Our experts picked this low-maintenance beauty for you today. Perfect for any room!
+              {pickMessages}
             </Text>
             
             <View style={styles.recPriceRow}>
-              <Text style={[styles.recPrice, { color: textColor }]}>₹{PRODUCTS[0].price}</Text>
-              {PRODUCTS[0].oldPrice && (
-                <Text style={styles.recOldPrice}>₹{PRODUCTS[0].oldPrice}</Text>
+              <Text style={[styles.recPrice, { color: textColor }]}>₹{todaysPick.price}</Text>
+              {todaysPick.oldPrice && (
+                <Text style={styles.recOldPrice}>₹{todaysPick.oldPrice}</Text>
               )}
             </View>
             
@@ -764,7 +786,7 @@ export default function HomeScreen() {
               style={styles.recAddBtn}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                addItem(PRODUCTS[0].id);
+                addItem(todaysPick.id);
                 setShowRecommendation(false);
               }}
             >

@@ -65,6 +65,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           paddingBottom: insets.bottom,
           transform: [{ translateY: tabBarTranslateY }],
           opacity: tabBarOpacity,
+          backgroundColor: isDarkMode ? '#121212' : '#FFFFFF',
           borderTopColor: isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
         },
       ]}
